@@ -659,6 +659,173 @@ class _MobileCategorySelector extends StatelessWidget {
 
 // ✅ UPDATED RIGHT SIDEBAR (Dynamic Cart)
 // ==========================================
+
+
+// ==========================================
+// ✅ CART BOTTOM SHEET (Shows Selected Items)
+// ==========================================
+class CartBottomSheet extends StatelessWidget {
+  final ScrollController scrollController;
+  const CartBottomSheet({super.key, required this.scrollController});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = Get.find<ServiceDetailsController>();
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        children: [
+          // --- Header ---
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Text(
+                  "Cart Summary",
+                  style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700, color: kUcTextBlack),
+                ),
+                const Spacer(),
+                InkWell(
+                  onTap: () => Get.back(),
+                  child: const Icon(Icons.close, color: Colors.black54),
+                )
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+
+          // --- List of Added Items ---
+          Expanded(
+            child: Obx(() {
+              if (c.cartItems.isEmpty) {
+                return Center(
+                  child: Text("Your cart is empty", style: GoogleFonts.poppins(color: kUcTextGrey)),
+                );
+              }
+
+              return ListView.separated(
+                controller: scrollController,
+                padding: const EdgeInsets.all(20),
+                itemCount: c.cartItems.length,
+                separatorBuilder: (_, __) => const Divider(height: 30),
+                itemBuilder: (_, index) {
+                  final key = c.cartItems.keys.elementAt(index);
+                  final item = c.cartItems[key]!;
+                  return _CartItemRow(item: item, c: c);
+                },
+              );
+            }),
+          ),
+
+          // --- Checkout Footer ---
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -4))],
+            ),
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Bill Row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("Total Amount", style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600)),
+                      Obx(() => Text("SAR ${c.totalCartPrice}", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w800, color: kUcTextBlack))),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Checkout Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // TODO: Navigate to Checkout Page
+                        Get.back();
+                        Get.snackbar("Processing", "Proceeding to checkout...");
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: kUcPurple,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                      ),
+                      child: Text("Proceed to Checkout", style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}
+
+// Helper Row for Cart Sheet
+class _CartItemRow extends StatelessWidget {
+  final Map<String, dynamic> item;
+  final ServiceDetailsController c;
+  const _CartItemRow({required this.item, required this.c});
+
+  @override
+  Widget build(BuildContext context) {
+    final title = item['title'];
+    final price = item['priceInt'];
+    final qty = item['quantity'];
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: kUcTextBlack)),
+              const SizedBox(height: 4),
+              Text("SAR $price x $qty", style: GoogleFonts.poppins(fontSize: 13, color: kUcTextGrey)),
+            ],
+          ),
+        ),
+
+        // Qty Control
+        Container(
+          height: 36,
+          decoration: BoxDecoration(
+            border: Border.all(color: kUcPurple.withOpacity(0.3)),
+            borderRadius: BorderRadius.circular(8),
+            color: const Color(0xFFF9F5FF),
+          ),
+          child: Row(
+            children: [
+              InkWell(
+                onTap: () => c.updateCartQty(title, qty - 1),
+                child: Container(width: 32, alignment: Alignment.center, child: const Icon(Icons.remove, size: 16, color: kUcPurple)),
+              ),
+              Text("$qty", style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: kUcTextBlack)),
+              InkWell(
+                onTap: () => c.updateCartQty(title, qty + 1),
+                child: Container(width: 32, alignment: Alignment.center, child: const Icon(Icons.add, size: 16, color: kUcPurple)),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 16),
+        Text("SAR ${price * qty}", style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: kUcTextBlack)),
+      ],
+    );
+  }
+}
+
+
 class _RightSidebar extends StatelessWidget {
   const _RightSidebar();
 
@@ -669,97 +836,34 @@ class _RightSidebar extends StatelessWidget {
     return Column(
       children: [
         // --- Dynamic Cart Box ---
-        Container(
+        // View Cart Button (Purple Block)
+        SizedBox(
           width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.grey.shade200),
-          ),
-          child: Obx(() {
-            // IF CART IS EMPTY
-            if (c.cartItems.isEmpty) {
-              return Column(
-                children: [
-                  const Icon(
-                    Icons.shopping_cart_outlined,
-                    size: 48,
-                    color: Colors.black12,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    "No items in your cart",
-                    style: GoogleFonts.poppins(
-                      color: kUcTextGrey,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              );
-            }
+          height: 50,
+          child: ElevatedButton(
+            // ✅ CALL THE CART SHEET
+            onPressed: () => c.openCartSheet(context),
 
-            // IF CART HAS ITEMS (Image 3 Style)
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: kUcPurple,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              elevation: 0,
+            ),
+            child: Row(
               children: [
                 Text(
-                  "Cart",
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: kUcTextBlack,
-                  ),
+                  "SAR${c.totalCartPrice}",
+                  style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
                 ),
-                const SizedBox(height: 20),
-
-                // Cart Items List
-                ...c.cartItems.values.map((item) {
-                  return _SidebarCartItem(item: item, c: c);
-                }),
-
-                const SizedBox(height: 24),
-
-                // View Cart Button (Purple Block)
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: kUcPurple,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      elevation: 0,
-                    ),
-                    child: Row(
-                      children: [
-                        Text(
-                          "SAR${c.totalCartPrice}",
-                          style: GoogleFonts.poppins(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          "View Cart",
-                          style: GoogleFonts.poppins(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                const Spacer(),
+                Text(
+                  "View Cart",
+                  style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
                 ),
               ],
-            );
-          }),
+            ),
+          ),
         ),
 
         const SizedBox(height: 14),
@@ -805,9 +909,9 @@ class _RightSidebar extends StatelessWidget {
   );
 }
 
-// ==========================================
-// ✅ HELPER: SIDEBAR CART ITEM ROW
-// ==========================================
+
+
+
 class _SidebarCartItem extends StatelessWidget {
   final Map<String, dynamic> item;
   final ServiceDetailsController c;
@@ -939,6 +1043,7 @@ class _RightSidebarContentOnly extends StatelessWidget {
 // ==========================================
 // ✅ FIXED MOBILE BOTTOM CART
 // ==========================================
+// Mobile Bottom Cart
 class _MobileBottomCart extends StatelessWidget {
   final ServiceDetailsController c;
   const _MobileBottomCart({required this.c});
@@ -946,66 +1051,34 @@ class _MobileBottomCart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
+      // ... decoration ...
       child: Row(
         children: [
           Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ✅ FIX: Used 'totalCartItems' instead of 'sheetQuantity'
-                Obx(
-                  () => Text(
-                    "${c.totalCartItems} Items",
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                Text(
-                  "View Cart",
-                  style: GoogleFonts.poppins(
-                    color: kUcPurple,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+            child: InkWell(
+              // ✅ Text এ ক্লিক করলেও শিট ওপেন হবে
+              onTap: () => c.openCartSheet(context),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Obx(() => Text("${c.totalCartItems} Items | SAR${c.totalCartPrice}", style: GoogleFonts.poppins(fontWeight: FontWeight.bold))),
+                  Text("View Cart", style: GoogleFonts.poppins(color: kUcPurple, fontSize: 12, fontWeight: FontWeight.w600)),
+                ],
+              ),
             ),
           ),
           ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: kUcPurple,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text(
-              "Proceed",
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ),
+            // ✅ Button এ ক্লিক করলেও শিট ওপেন হবে (অথবা ডিরেক্ট চেকআউট পেজে নিতে পারেন)
+            onPressed: () => c.openCartSheet(context),
+            style: ElevatedButton.styleFrom(backgroundColor: kUcPurple, padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+            child: Text("Proceed", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white)),
+          )
         ],
       ),
     );
   }
 }
-
-
 // ==========================================
 // PRODUCT DETAILS SHEET (Reused)
 // ==========================================

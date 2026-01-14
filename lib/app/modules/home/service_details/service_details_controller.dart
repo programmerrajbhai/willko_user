@@ -25,45 +25,39 @@ class ServiceDetailsController extends GetxController {
   List<Map<String, dynamic>> get items =>
       (service["items"] as List).cast<Map<String, dynamic>>();
 
-  // ✅ Get Packages based on selected index
   List<Map<String, dynamic>> get packages {
-    final allPackages = service["packagesByItem"];
-    if (allPackages == null) return [];
-
-    // Handle both int keys (from local map) and string keys (from JSON)
-    final list = (allPackages as Map)[selectedItemIndex.value] ??
+    final allPackages = service["packagesByItem"] as Map;
+    final list = allPackages[selectedItemIndex.value] ??
         allPackages[selectedItemIndex.value.toString()] ?? [];
-
     return (list as List).cast<Map<String, dynamic>>();
   }
 
-  // ✅ Dynamic Banner Data Generation
+  // Dynamic Banner Data
   Map<String, dynamic> get currentBannerData {
-    if (items.isEmpty) return {};
-
+    if(items.isEmpty) return {};
     final itemTitle = items[selectedItemIndex.value]["title"] ?? "";
     final titleLower = itemTitle.toString().toLowerCase();
 
-    if (titleLower.contains("repair") || titleLower.contains("fix")) {
+    if (titleLower.contains("repair")) {
       return {
         "title": "Stay Cool with\nAC Repairing Service",
         "bullets": ["Same day service", "Genuine spare parts", "30 days warranty"],
         "icon": Icons.build_circle_outlined,
-        "color": const Color(0xFF2C2C2C) // Dark Theme
+        "color": const Color(0xFF2C2C2C)
       };
-    } else if (titleLower.contains("install") || titleLower.contains("wiring") || titleLower.contains("setup")) {
+    } else if (titleLower.contains("install")) {
       return {
         "title": "Flawless Installation\nProficiency",
         "bullets": ["Certified experts", "No wall damage", "Vacuum pump used"],
         "icon": Icons.settings_suggest_outlined,
-        "color": const Color(0xFF0F9D58) // Green Theme
+        "color": const Color(0xFF0F9D58)
       };
     } else {
       return {
         "title": "Deep Cleaning for\nQuick Cooling",
         "bullets": ["Foam-jet technology", "7+ years experience", "30 days guarantee"],
         "icon": Icons.ac_unit,
-        "color": const Color(0xFF6C45E5) // Purple Theme
+        "color": const Color(0xFF6C45E5)
       };
     }
   }
@@ -71,14 +65,13 @@ class ServiceDetailsController extends GetxController {
   // --- Actions ---
   void selectItem(int idx) => selectedItemIndex.value = idx;
 
-  // --- 🛒 CART & SHEET LOGIC ---
+  // --- 🛒 CART LOGIC ---
 
+  // Open Product Details Sheet
   void openProductDetailsSheet(BuildContext context, Map<String, dynamic> product) {
     selectedProductForSheet.value = product;
     String pTitle = product['title'];
 
-    // If item exists in cart, sync quantity.
-    // If NOT in cart, start at 0 (user must click + to add).
     if (cartItems.containsKey(pTitle)) {
       sheetTempQty.value = cartItems[pTitle]!['quantity'];
     } else {
@@ -89,15 +82,32 @@ class ServiceDetailsController extends GetxController {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      transitionAnimationController: AnimationController(
-        vsync: Navigator.of(context),
-        duration: const Duration(milliseconds: 350),
-      ),
       builder: (_) => DraggableScrollableSheet(
         initialChildSize: 0.85,
         minChildSize: 0.5,
         maxChildSize: 0.95,
         builder: (_, sc) => ProductDetailSheet(scrollController: sc),
+      ),
+    );
+  }
+
+  // Open Cart Summary Sheet
+  void openCartSheet(BuildContext context) {
+    if (cartItems.isEmpty) {
+      Get.snackbar("Cart is empty", "Add services to proceed",
+          snackPosition: SnackPosition.BOTTOM, margin: const EdgeInsets.all(16));
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.9,
+        builder: (_, sc) => CartBottomSheet(scrollController: sc),
       ),
     );
   }
@@ -108,7 +118,7 @@ class ServiceDetailsController extends GetxController {
     if (sheetTempQty.value > 0) sheetTempQty.value--;
   }
 
-  // ✅ Confirm Selection & Close Sheet (The Magic Function)
+  // ✅ Confirm & Close Sheet
   void confirmSheetSelection() {
     final product = selectedProductForSheet.value;
     if (product != null) {
@@ -117,34 +127,42 @@ class ServiceDetailsController extends GetxController {
       if (sheetTempQty.value > 0) {
         final Map<String, dynamic> cartItem = Map.from(product);
         cartItem['quantity'] = sheetTempQty.value;
-        cartItems[pTitle] = cartItem; // Update Main Cart
+        cartItems[pTitle] = cartItem;
 
-        Get.snackbar(
-          "Cart Updated",
-          "$pTitle added",
-          snackPosition: SnackPosition.BOTTOM,
-          margin: const EdgeInsets.all(16),
-          backgroundColor: Colors.black87,
-          colorText: Colors.white,
-          duration: const Duration(milliseconds: 1500),
-        );
+        Get.snackbar("Cart Updated", "$pTitle added",
+            snackPosition: SnackPosition.BOTTOM,
+            margin: const EdgeInsets.all(16),
+            backgroundColor: Colors.black87,
+            colorText: Colors.white,
+            duration: const Duration(seconds: 1));
       } else {
-        cartItems.remove(pTitle); // Remove if 0
+        cartItems.remove(pTitle);
       }
     }
-    Get.back(); // Close Sheet
+    Get.back();
   }
 
-  // Direct modification from Sidebar (Plus/Minus buttons)
+  // Direct modification from Sidebar/Cart Sheet
   void updateCartQty(String title, int newQty) {
     if (cartItems.containsKey(title)) {
       if (newQty > 0) {
         cartItems[title]!['quantity'] = newQty;
-        cartItems.refresh(); // Force update UI
+        cartItems.refresh();
       } else {
         cartItems.remove(title);
       }
     }
+  }
+
+  // ✅ Checkout Action
+  void proceedToCheckout() {
+    Get.back(); // Close any open sheet
+    Get.snackbar("Processing", "Proceeding to secure checkout...",
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+        backgroundColor: const Color(0xFF6C45E5),
+        colorText: Colors.white,
+        icon: const Icon(Icons.check_circle, color: Colors.white));
   }
 
   // ✅ Total Price Calculation
