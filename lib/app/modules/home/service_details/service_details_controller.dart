@@ -1,79 +1,101 @@
-import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-
-import '../../booking/cart/cart_view.dart';
-
+import 'package:get/get.dart';
+import 'service_details_view.dart'; // Import View file to access the Sheet widget
 
 class ServiceDetailsController extends GetxController {
-  var service = {}.obs;
-  var isLoading = true.obs;
-  var quantity = 1.obs;
+  final Map<String, dynamic> service;
+  ServiceDetailsController({required this.service});
 
-  // ডামি ডিটেইলড ডাটা (সাধারণত API থেকে আসবে)
-  final Map<String, dynamic> dummyDetails = {
-    "id": 101,
-    "name": "AC Service (Split)",
-    "price": "৳800",
-    "rating": "4.8",
-    "reviews_count": "12k",
-    "description": "Advanced foam-jet technology for 2X deeper cleaning. Improves cooling efficiency and reduces power consumption.",
-    "time": "45 mins",
-    "image": Icons.ac_unit_rounded,
-    "includes": [
-      "Filter and coil cleaning",
-      "Gas pressure check",
-      "Drain pipe cleaning",
-      "Outdoor unit check"
-    ],
-    "excludes": [
-      "Spare parts replacement",
-      "Gas refill (charged separately)"
-    ],
-    "gallery": [
-      Colors.blue.shade100,
-      Colors.blue.shade200,
-      Colors.blue.shade300
-    ]
-  };
+  // --- Observables ---
+  final selectedItemIndex = 0.obs;
 
-  @override
-  void onInit() {
-    super.onInit();
-    // আর্গুমেন্ট থেকে আইডি নেওয়া (যদি পাঠানো হয়)
-    if (Get.arguments != null) {
-      // রিয়েল অ্যাপে এখানে API কল হবে ID দিয়ে
-      loadServiceDetails(Get.arguments);
+  // ✅ MAIN CART STATE: Stores { "Product Title": Quantity }
+  final cart = <String, int>{}.obs;
+
+  // ✅ SHEET STATE: Temporary quantity while the sheet is open
+  final selectedProductForSheet = Rxn<Map<String, dynamic>>();
+  final sheetTempQty = 0.obs;
+
+  // --- Getters from Data ---
+  String get title => service["label"] ?? "";
+  double get rating => (service["rating"] ?? 0).toDouble();
+  String get bookings => service["bookings"] ?? "";
+
+  List<Map<String, dynamic>> get items =>
+      (service["items"] as List).cast<Map<String, dynamic>>();
+
+  List<Map<String, dynamic>> get packages {
+    final allPackages = service["packagesByItem"] as Map;
+    final list = allPackages[selectedItemIndex.value] ?? allPackages[selectedItemIndex.value.toString()] ?? [];
+    return (list as List).cast<Map<String, dynamic>>();
+  }
+
+  // Banner Logic (Keep existing)
+  Map<String, dynamic> get currentBannerData {
+    final itemTitle = items[selectedItemIndex.value]["title"] ?? "";
+    if (itemTitle.toString().toLowerCase().contains("repair")) {
+      return {"title": "Stay Cool with\nAC Repairing Service", "bullets": ["Same day service", "Genuine spare parts", "30 days warranty"], "icon": Icons.build_circle_outlined, "color": const Color(0xFF2C2C2C)};
+    } else if (itemTitle.toString().toLowerCase().contains("install")) {
+      return {"title": "Flawless Installation\nProficiency", "bullets": ["Certified experts", "No wall damage", "Vacuum pump used"], "icon": Icons.settings_suggest_outlined, "color": const Color(0xFF0F9D58)};
     } else {
-      loadServiceDetails(101); // ডিফল্ট টেস্ট ডাটা
+      return {"title": "Deep Cleaning for\nQuick Cooling", "bullets": ["Foam-jet technology", "7+ years experience", "30 days guarantee"], "icon": Icons.ac_unit, "color": const Color(0xFF6C45E5)};
     }
   }
 
-  void loadServiceDetails(dynamic id) async {
-    isLoading.value = true;
-    await Future.delayed(const Duration(milliseconds: 800)); // ফেক লোডিং
+  // --- Actions ---
+  void selectItem(int idx) => selectedItemIndex.value = idx;
 
-    // ডামি ডাটার সাথে আর্গুমেন্টের নাম মার্জ করা (যদি সিম্পল অবজেক্ট পাস করা হয়)
-    // এখানে আমরা সরাসরি ডামি ডিটেইলস অ্যাসাইন করছি
-    service.value = dummyDetails;
-    isLoading.value = false;
-  }
+  // --- 🛒 CART & SHEET LOGIC ---
 
-  void incrementQty() => quantity.value++;
+  void openProductDetailsSheet(BuildContext context, Map<String, dynamic> product) {
+    selectedProductForSheet.value = product;
+    String pTitle = product['title'];
 
-  void decrementQty() {
-    if (quantity.value > 1) quantity.value--;
-  }
+    // If item is already in cart, show that quantity. Otherwise start at 0.
+    if (cart.containsKey(pTitle)) {
+      sheetTempQty.value = cart[pTitle]!;
+    } else {
+      sheetTempQty.value = 0; // Start at 0, user has to add
+    }
 
-  void addToCart() {
-    Get.snackbar(
-      "Cart",
-      "${service['name']} added to cart!",
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-      margin: const EdgeInsets.all(20),
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (_, sc) => ProductDetailSheet(scrollController: sc),
+      ),
     );
-    Get.to(() => const CartView());// কার্ট ভিউ ইমপোর্ট করো
-    // TODO: কার্ট লজিক বা কার্ট পেজে নেভিগেশন
   }
+
+  void incrementSheetQty() {
+    sheetTempQty.value++;
+  }
+
+  void decrementSheetQty() {
+    if (sheetTempQty.value > 0) {
+      sheetTempQty.value--;
+    }
+  }
+
+  // Save changes when "Done" is clicked
+  void confirmSheetSelection() {
+    final product = selectedProductForSheet.value;
+    if (product != null) {
+      String pTitle = product['title'];
+      if (sheetTempQty.value > 0) {
+        cart[pTitle] = sheetTempQty.value;
+        Get.snackbar("Success", "$pTitle updated in cart",
+            snackPosition: SnackPosition.BOTTOM, margin: const EdgeInsets.all(16), backgroundColor: Colors.black87, colorText: Colors.white, duration: const Duration(seconds: 1));
+      } else {
+        cart.remove(pTitle);
+      }
+    }
+    Get.back();
+  }
+
+  int get totalCartItems => cart.values.fold(0, (sum, item) => sum + item);
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:willko_user/app/modules/home/service_details/service_details_view.dart';
 import 'app/modules/home/home_view.dart'; // আপনার হোম পেজ ইমপোর্ট করুন
 
 void main() {
@@ -46,7 +47,7 @@ class MyApp extends StatelessWidget {
       themeMode: ThemeMode.light,
 
       // আপনার হোম বা স্প্ল্যাশ স্ক্রিন
-      home: const HomeView(),
+      home: HomeView()
     );
   }
 }
