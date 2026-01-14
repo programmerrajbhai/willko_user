@@ -656,43 +656,238 @@ class _MobileCategorySelector extends StatelessWidget {
 }
 
 // ==========================================
-// RIGHT SIDEBAR (Desktop)
+
+// ✅ UPDATED RIGHT SIDEBAR (Dynamic Cart)
 // ==========================================
 class _RightSidebar extends StatelessWidget {
   const _RightSidebar();
+
   @override
   Widget build(BuildContext context) {
+    final c = Get.find<ServiceDetailsController>();
+
     return Column(
       children: [
+        // --- Dynamic Cart Box ---
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: Obx(() {
+            // IF CART IS EMPTY
+            if (c.cartItems.isEmpty) {
+              return Column(
+                children: [
+                  const Icon(
+                    Icons.shopping_cart_outlined,
+                    size: 48,
+                    color: Colors.black12,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "No items in your cart",
+                    style: GoogleFonts.poppins(
+                      color: kUcTextGrey,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              );
+            }
+
+            // IF CART HAS ITEMS (Image 3 Style)
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Cart",
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: kUcTextBlack,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Cart Items List
+                ...c.cartItems.values.map((item) {
+                  return _SidebarCartItem(item: item, c: c);
+                }),
+
+                const SizedBox(height: 24),
+
+                // View Cart Button (Purple Block)
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: kUcPurple,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      elevation: 0,
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          "SAR${c.totalCartPrice}",
+                          style: GoogleFonts.poppins(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          "View Cart",
+                          style: GoogleFonts.poppins(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }),
+        ),
+
+        const SizedBox(height: 14),
+
+        // --- UC Promise Box ---
+        Container(
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: Colors.grey.shade200),
           ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(
-                Icons.shopping_cart_outlined,
-                size: 48,
-                color: Colors.black26,
-              ),
-              const SizedBox(height: 10),
               Text(
-                "No items in your cart",
+                "UC Promise",
                 style: GoogleFonts.poppins(
-                  color: kUcTextGrey,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
+              const SizedBox(height: 14),
+              _p("Verified Professionals"),
+              _p("Hassle Free Booking"),
+              _p("Transparent Pricing"),
             ],
           ),
         ),
-        const SizedBox(height: 14),
-        const _RightSidebarContentOnly(),
       ],
+    );
+  }
+
+  Widget _p(String t) => Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Row(
+      children: [
+        const Icon(Icons.check, size: 16, color: kUcTextBlack),
+        const SizedBox(width: 10),
+        Text(t, style: GoogleFonts.poppins(fontSize: 13, color: kUcTextGrey)),
+      ],
+    ),
+  );
+}
+
+// ==========================================
+// ✅ HELPER: SIDEBAR CART ITEM ROW
+// ==========================================
+class _SidebarCartItem extends StatelessWidget {
+  final Map<String, dynamic> item;
+  final ServiceDetailsController c;
+  const _SidebarCartItem({required this.item, required this.c});
+
+  @override
+  Widget build(BuildContext context) {
+    final title = item['title'];
+    final price = item['priceInt'];
+    final qty = item['quantity'];
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Item Name
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: kUcTextBlack,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+
+          // Counter
+          Container(
+            height: 32,
+            decoration: BoxDecoration(
+              border: Border.all(color: kUcPurple.withOpacity(0.3)),
+              borderRadius: BorderRadius.circular(6),
+              color: const Color(0xFFF9F5FF),
+            ),
+            child: Row(
+              children: [
+                _miniBtn(Icons.remove, () => c.updateCartQty(title, qty - 1)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    "$qty",
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: kUcPurple,
+                    ),
+                  ),
+                ),
+                _miniBtn(Icons.add, () => c.updateCartQty(title, qty + 1)),
+              ],
+            ),
+          ),
+
+          const SizedBox(width: 12),
+
+          // Price
+          Text(
+            "SAR${price * qty}",
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: kUcTextGrey,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _miniBtn(IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        width: 24,
+        alignment: Alignment.center,
+        child: Icon(icon, size: 14, color: kUcPurple),
+      ),
     );
   }
 }
@@ -771,7 +966,7 @@ class _MobileBottomCart extends StatelessWidget {
               children: [
                 // ✅ FIX: Used 'totalCartItems' instead of 'sheetQuantity'
                 Obx(
-                      () => Text(
+                  () => Text(
                     "${c.totalCartItems} Items",
                     style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
                   ),
@@ -809,8 +1004,13 @@ class _MobileBottomCart extends StatelessWidget {
     );
   }
 }
+
+
 // ==========================================
 // PRODUCT DETAILS SHEET (Reused)
+// ==========================================
+// ==========================================
+// ✅ UPDATED PRODUCT DETAIL SHEET (FIXED TOTAL PRICE)
 // ==========================================
 class ProductDetailSheet extends StatelessWidget {
   final ScrollController scrollController;
@@ -826,7 +1026,9 @@ class ProductDetailSheet extends StatelessWidget {
 
       final priceInt = (prod["priceInt"] ?? 0) as int;
       final currentQty = c.sheetTempQty.value;
-      final totalPrice = priceInt * (currentQty == 0 ? 1 : currentQty); // Show base price if 0
+
+      // প্রাইস ক্যালকুলেশন
+      final totalPrice = priceInt * (currentQty == 0 ? 1 : currentQty);
 
       return Container(
         decoration: const BoxDecoration(
@@ -835,14 +1037,14 @@ class ProductDetailSheet extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // --- 1. Header (Close Button) ---
+            // --- Header ---
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
               child: Row(
                 children: [
                   const Spacer(),
                   InkWell(
-                    onTap: () => Get.back(),
+                    onTap: () => Get.back(), // X বাটনে ক্লিক করলে শিট বন্ধ হবে
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -857,7 +1059,7 @@ class ProductDetailSheet extends StatelessWidget {
               ),
             ),
 
-            // --- 2. Scrollable Content ---
+            // --- Body ---
             Expanded(
               child: SingleChildScrollView(
                 controller: scrollController,
@@ -865,133 +1067,91 @@ class ProductDetailSheet extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Title
                     Text(
                       (prod["title"] ?? "").toString(),
-                      style: GoogleFonts.poppins(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w700,
-                        color: kUcTextBlack,
-                        height: 1.2,
-                      ),
+                      style: GoogleFonts.poppins(fontSize: 26, fontWeight: FontWeight.w700, color: kUcTextBlack, height: 1.2),
                     ),
                     const SizedBox(height: 12),
-
-                    // Rating Badge
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
+                      decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(6)),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const Icon(Icons.star, size: 14, color: kUcTextBlack),
                           const SizedBox(width: 6),
-                          Text(
-                            "${prod["rating"]} (${prod["reviews"]})",
-                            style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600),
-                          ),
+                          Text("${prod["rating"]} (${prod["reviews"]})", style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600)),
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 24),
-                    const Divider(thickness: 8, color: Color(0xFFF5F5F7)), // Thick Divider
+                    const Divider(thickness: 8, color: Color(0xFFF5F5F7)),
                     const SizedBox(height: 24),
-
-                    // Description
                     _sheetTitle("About the service"),
-                    Text(
-                      (prod["description"] ?? "No description available.").toString(),
-                      style: GoogleFonts.poppins(fontSize: 14, color: kUcTextGrey, height: 1.6),
-                    ),
+                    Text((prod["description"] ?? "No description.").toString(), style: GoogleFonts.poppins(fontSize: 14, color: kUcTextGrey, height: 1.6)),
                     const SizedBox(height: 32),
-
-                    // ✅ How it works Section
-                    if (prod["howItWorks"] != null) ...[
-                      _sheetTitle("How it works"),
-                      _HowItWorksTimeline(steps: prod["howItWorks"]),
-                      const SizedBox(height: 32),
-                    ],
-
-                    // ✅ Reviews Section
-                    if (prod["ratingBreakdown"] != null) ...[
-                      _sheetTitle("Reviews and Ratings"),
-                      _RatingBreakdown(data: prod["ratingBreakdown"]),
-                    ],
-
-                    const SizedBox(height: 100), // Bottom padding for footer
+                    if (prod["howItWorks"] != null) ...[_sheetTitle("How it works"), _HowItWorksTimeline(steps: prod["howItWorks"]), const SizedBox(height: 32)],
+                    if (prod["ratingBreakdown"] != null) ...[_sheetTitle("Reviews and Ratings"), _RatingBreakdown(data: prod["ratingBreakdown"])],
+                    const SizedBox(height: 100),
                   ],
                 ),
               ),
             ),
 
-            // --- 3. Sticky Footer (Add/Quantity Logic) ---
+            // --- Footer ---
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -4))],
               ),
-              child: Row(
-                children: [
-                  // Quantity Selector
-                  Container(
-                    height: 50,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: Row(
-                      children: [
-                        _qtyBtn(Icons.remove, () => c.decrementSheetQty(), currentQty > 0 ? kUcPurple : Colors.grey),
-                        SizedBox(
-                          width: 40,
-                          child: Center(
-                            child: Text(
-                              "$currentQty",
-                              style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: kUcPurple),
-                            ),
-                          ),
-                        ),
-                        _qtyBtn(Icons.add, () => c.incrementSheetQty(), kUcPurple),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-
-                  // Done Button
-                  Expanded(
-                    child: SizedBox(
+              child: SafeArea(
+                child: Row(
+                  children: [
+                    Container(
                       height: 50,
-                      child: ElevatedButton(
-                        onPressed: currentQty > 0 ? () => c.confirmSheetSelection() : null, // Disable if 0
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: kUcPurple,
-                          disabledBackgroundColor: Colors.grey.shade300,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          elevation: 0,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Done",
-                              style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
-                            ),
-                            if (currentQty > 0)
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade300)),
+                      child: Row(
+                        children: [
+                          _qtyBtn(Icons.remove, () => c.decrementSheetQty(), currentQty > 0 ? kUcPurple : Colors.grey),
+                          SizedBox(width: 40, child: Center(child: Text("$currentQty", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: kUcPurple)))),
+                          _qtyBtn(Icons.add, () => c.incrementSheetQty(), kUcPurple),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+
+                    // ✅ DONE / REMOVE BUTTON
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          // ✅ এই ফাংশনটি কল হবে, ডাটা অ্যাড হবে এবং শিট বন্ধ হবে
+                          onPressed: () => c.confirmSheetSelection(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: kUcPurple,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 0,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
                               Text(
-                                "SAR $totalPrice",
-                                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                                currentQty == 0 ? "Remove" : "Done",
+                                style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
                               ),
-                          ],
+                              if (currentQty > 0)
+                                Text(
+                                  "SAR $totalPrice",
+                                  style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -1000,25 +1160,10 @@ class ProductDetailSheet extends StatelessWidget {
     });
   }
 
-  Widget _sheetTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Text(
-        title,
-        style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, color: kUcTextBlack),
-      ),
-    );
-  }
+  Widget _sheetTitle(String title) => Padding(padding: const EdgeInsets.only(bottom: 20), child: Text(title, style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, color: kUcTextBlack)));
 
   Widget _qtyBtn(IconData icon, VoidCallback onTap, Color color) {
-    return InkWell(
-      onTap: onTap,
-      child: SizedBox(
-        width: 45,
-        height: double.infinity,
-        child: Icon(icon, color: color, size: 24),
-      ),
-    );
+    return InkWell(onTap: onTap, child: SizedBox(width: 45, height: double.infinity, child: Icon(icon, color: color, size: 24)));
   }
 }
 
@@ -1041,7 +1186,8 @@ class _HowItWorksTimeline extends StatelessWidget {
               Column(
                 children: [
                   Container(
-                    width: 24, height: 24,
+                    width: 24,
+                    height: 24,
                     decoration: BoxDecoration(
                       color: const Color(0xFFF0EFFF), // Light purple bg
                       shape: BoxShape.circle,
@@ -1072,12 +1218,20 @@ class _HowItWorksTimeline extends StatelessWidget {
                     children: [
                       Text(
                         (step['title'] ?? "").toString(),
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 16, color: kUcTextBlack),
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                          color: kUcTextBlack,
+                        ),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         (step['desc'] ?? "").toString(),
-                        style: GoogleFonts.poppins(color: kUcTextGrey, fontSize: 14, height: 1.5),
+                        style: GoogleFonts.poppins(
+                          color: kUcTextGrey,
+                          fontSize: 14,
+                          height: 1.5,
+                        ),
                       ),
                     ],
                   ),
@@ -1110,13 +1264,22 @@ class _RatingBreakdown extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               (data['average'] ?? "").toString(),
-              style: GoogleFonts.poppins(fontSize: 42, fontWeight: FontWeight.w700, color: kUcTextBlack, height: 1),
+              style: GoogleFonts.poppins(
+                fontSize: 42,
+                fontWeight: FontWeight.w700,
+                color: kUcTextBlack,
+                height: 1,
+              ),
             ),
           ],
         ),
         Text(
           "${data['total']} reviews",
-          style: GoogleFonts.poppins(fontSize: 14, color: kUcTextGrey, fontWeight: FontWeight.w500),
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            color: kUcTextGrey,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         const SizedBox(height: 24),
 
@@ -1132,7 +1295,13 @@ class _RatingBreakdown extends StatelessWidget {
               children: [
                 SizedBox(
                   width: 15,
-                  child: Text("$star", style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700)),
+                  child: Text(
+                    "$star",
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 6),
                 const Icon(Icons.star, size: 12, color: Colors.grey),
@@ -1143,7 +1312,8 @@ class _RatingBreakdown extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: percentage,
                       backgroundColor: Colors.grey.shade100,
-                      color: kUcTextBlack, // UC typically uses black/dark grey for bars
+                      color:
+                          kUcTextBlack, // UC typically uses black/dark grey for bars
                       minHeight: 6,
                     ),
                   ),
@@ -1154,7 +1324,10 @@ class _RatingBreakdown extends StatelessWidget {
                   child: Text(
                     "$count",
                     textAlign: TextAlign.end,
-                    style: GoogleFonts.poppins(fontSize: 12, color: kUcTextGrey),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: kUcTextGrey,
+                    ),
                   ),
                 ),
               ],
@@ -1184,8 +1357,8 @@ class _Navbar extends StatelessWidget {
         children: [
           if (isMobile) ...[
             InkWell(
-                onTap: () => Get.back(),
-                child: const Icon(Icons.arrow_back, color: Colors.black)
+              onTap: () => Get.back(),
+              child: const Icon(Icons.arrow_back, color: Colors.black),
             ),
             const SizedBox(width: 12),
           ],
@@ -1239,7 +1412,13 @@ class _Navbar extends StatelessWidget {
                 children: [
                   const Icon(Icons.search, size: 20, color: Colors.grey),
                   const SizedBox(width: 8),
-                  Text("Search services...", style: GoogleFonts.poppins(color: Colors.grey, fontSize: 13)),
+                  Text(
+                    "Search services...",
+                    style: GoogleFonts.poppins(
+                      color: Colors.grey,
+                      fontSize: 13,
+                    ),
+                  ),
                 ],
               ),
             ),
