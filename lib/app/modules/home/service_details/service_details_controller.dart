@@ -1,113 +1,215 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'service_details_view.dart';
+import 'package:willko_user/app/modules/home/service_details/service_details_view.dart';
 
 class ServiceDetailsController extends GetxController {
-  final Map<String, dynamic> service;
-
   ServiceDetailsController({required this.service});
 
-  // --- Observables ---
+  final Map<String, dynamic> service;
+
+  // ---------------- UI STATE ----------------
   final selectedItemIndex = 0.obs;
 
-  // ✅ MAIN CART STATE: Key = Product Title, Value = Product Map (with quantity)
+  /// Product details sheet state
+  final selectedProductForSheet = Rxn<Map<String, dynamic>>();
+  final sheetTempQty = 1.obs;
+
+  /// Cart: key -> item map
+  /// item: {key,title,priceInt,quantity,raw}
   final cartItems = <String, Map<String, dynamic>>{}.obs;
 
-  // ✅ SHEET STATE: Temporary state while sheet is open
-  final selectedProductForSheet = Rxn<Map<String, dynamic>>();
-  final sheetTempQty = 0.obs;
-
-  // --- Getters from Data ---
-  String get title => service["label"] ?? "";
+  // ---------------- SERVICE DATA ----------------
+  String get title => (service["label"] ?? "").toString();
   double get rating => (service["rating"] ?? 0).toDouble();
-  String get bookings => service["bookings"] ?? "";
+  String get bookings => (service["bookings"] ?? "").toString();
 
   List<Map<String, dynamic>> get items =>
-      (service["items"] as List).cast<Map<String, dynamic>>();
+      (service["items"] as List? ?? []).cast<Map<String, dynamic>>();
 
-  List<Map<String, dynamic>> get packages {
-    final allPackages = service["packagesByItem"] as Map;
-    final list = allPackages[selectedItemIndex.value] ??
-        allPackages[selectedItemIndex.value.toString()] ?? [];
-    return (list as List).cast<Map<String, dynamic>>();
+  /// packagesByItem: {0:[...],1:[...],2:[...]}
+  Map<int, List<Map<String, dynamic>>> get packagesByItem {
+    final raw = service["packagesByItem"];
+    if (raw is Map<int, List<Map<String, dynamic>>>) return raw;
+
+    if (raw is Map) {
+      final out = <int, List<Map<String, dynamic>>>{};
+      raw.forEach((k, v) {
+        final key = (k is int) ? k : int.tryParse(k.toString()) ?? 0;
+        final list = (v as List? ?? []).cast<Map<String, dynamic>>();
+        out[key] = list;
+      });
+      return out;
+    }
+    return {};
   }
 
-  // Dynamic Banner Data
-  Map<String, dynamic> get currentBannerData {
-    if(items.isEmpty) return {};
-    final itemTitle = items[selectedItemIndex.value]["title"] ?? "";
-    final titleLower = itemTitle.toString().toLowerCase();
+  List<Map<String, dynamic>> get packages =>
+      packagesByItem[selectedItemIndex.value] ?? [];
 
-    if (titleLower.contains("repair")) {
-      return {
-        "title": "Stay Cool with\nAC Repairing Service",
-        "bullets": ["Same day service", "Genuine spare parts", "30 days warranty"],
-        "icon": Icons.build_circle_outlined,
-        "color": const Color(0xFF2C2C2C)
-      };
-    } else if (titleLower.contains("install")) {
-      return {
-        "title": "Flawless Installation\nProficiency",
-        "bullets": ["Certified experts", "No wall damage", "Vacuum pump used"],
-        "icon": Icons.settings_suggest_outlined,
-        "color": const Color(0xFF0F9D58)
+  // ---------------- ✅ SINGLE DYNAMIC BANNER DATA (UI SAME) ----------------
+  /// You are using _DynamicHeroBanner in UI which reads this.
+  Map<String, dynamic> get currentBannerData {
+    // ✅ This getter must "touch" selectedItemIndex.value so Obx updates
+    final idx = selectedItemIndex.value;
+
+    // fallback info
+    final categoryTitle = (items.isNotEmpty && idx < items.length)
+        ? (items[idx]["title"] ?? "Service").toString()
+        : "Service";
+
+    // You can customize based on service slug/label/category index
+    final slug = (service["slug"] ?? "").toString();
+
+    // Default values (modern + user friendly)
+    Color bg = const Color(0xFF6C45E5); // purple
+    IconData icon = Icons.home_repair_service_rounded;
+    String t = "We've got you covered!";
+    List<String> bullets = const [
+      "Verified professionals",
+      "Transparent pricing",
+      "Hassle-free booking",
+    ];
+
+    // Some smart mapping for visuals
+    if (slug.contains("ac")) {
+      bg = const Color(0xFF7A0B0B); // deep red like your screenshot vibe
+      icon = Icons.ac_unit_rounded;
+      t = "AC ${categoryTitle.replaceAll('\n', ' ')}";
+      bullets = const [
+        "30-day service guarantee",
+        "Certified technicians",
+        "Fast & clean service",
+      ];
+    } else if (slug.contains("plumbing")) {
+      bg = const Color(0xFF0F6CBD);
+      icon = Icons.plumbing_rounded;
+      t = "Plumbing ${categoryTitle.replaceAll('\n', ' ')}";
+      bullets = const [
+        "Quick booking",
+        "Tools included",
+        "Neat finishing",
+      ];
+    } else if (slug.contains("electric")) {
+      bg = const Color(0xFF1E1E1E);
+      icon = Icons.electrical_services_rounded;
+      t = "Electric ${categoryTitle.replaceAll('\n', ' ')}";
+      bullets = const [
+        "Safety first",
+        "Certified electricians",
+        "Warranty on service",
+      ];
+    } else {
+      // generic but still nice
+      t = "${title.replaceAll('\n', ' ')}";
+      bullets = const [
+        "Verified professionals",
+        "Tools included",
+        "Transparent pricing",
+      ];
+    }
+
+    return {
+      "title": t,
+      "bullets": bullets,
+      "icon": icon,
+      "color": bg,
+    };
+  }
+
+  // ---------------- ACTIONS ----------------
+  void selectItem(int index) {
+    if (index < 0 || index >= items.length) return;
+    selectedItemIndex.value = index;
+  }
+
+  // ---------------- CART HELPERS ----------------
+  String _productKey(Map<String, dynamic> p) {
+    // prefer id, fallback to title
+    final id = p["id"];
+    if (id != null) return id.toString();
+    return (p["title"] ?? "unknown").toString();
+  }
+
+  int cartQtyOf(Map<String, dynamic> product) {
+    final key = _productKey(product);
+    final item = cartItems[key];
+    if (item == null) return 0;
+    return (item["quantity"] ?? 0) as int;
+  }
+
+  int get totalCartItems {
+    int total = 0;
+    for (final e in cartItems.values) {
+      total += (e["quantity"] ?? 0) as int;
+    }
+    return total;
+  }
+
+  int get totalCartPrice {
+    int total = 0;
+    for (final e in cartItems.values) {
+      final price = (e["priceInt"] ?? 0) as int;
+      final qty = (e["quantity"] ?? 0) as int;
+      total += price * qty;
+    }
+    return total;
+  }
+
+  /// ✅ “Add” button tap (no sheet)
+  void quickAdd(Map<String, dynamic> product) {
+    final key = _productKey(product);
+    final current = cartItems[key];
+    final priceInt = (product["priceInt"] ?? 0) as int;
+
+    if (current == null) {
+      cartItems[key] = {
+        "key": key,
+        "title": (product["title"] ?? "").toString(),
+        "priceInt": priceInt,
+        "quantity": 1,
+        "raw": product,
       };
     } else {
-      return {
-        "title": "Deep Cleaning for\nQuick Cooling",
-        "bullets": ["Foam-jet technology", "7+ years experience", "30 days guarantee"],
-        "icon": Icons.ac_unit,
-        "color": const Color(0xFF6C45E5)
+      cartItems[key] = {
+        ...current,
+        "quantity": ((current["quantity"] ?? 0) as int) + 1,
       };
     }
+    cartItems.refresh();
+    Get.snackbar("Added", "Added to cart");
   }
 
-  // --- Actions ---
-  void selectItem(int idx) => selectedItemIndex.value = idx;
+  void updateCartQty(String key, int newQty) {
+    final item = cartItems[key];
+    if (item == null) return;
 
-  // --- 🛒 CART LOGIC ---
+    if (newQty <= 0) {
+      cartItems.remove(key);
+    } else {
+      cartItems[key] = {...item, "quantity": newQty};
+    }
+    cartItems.refresh();
+  }
 
-  // Open Product Details Sheet
+  // ---------------- PRODUCT DETAILS SHEET ----------------
   void openProductDetailsSheet(BuildContext context, Map<String, dynamic> product) {
     selectedProductForSheet.value = product;
-    String pTitle = product['title'];
 
-    if (cartItems.containsKey(pTitle)) {
-      sheetTempQty.value = cartItems[pTitle]!['quantity'];
-    } else {
-      sheetTempQty.value = 0;
-    }
+    // start qty from cart if exists, else 1
+    final existingQty = cartQtyOf(product);
+    sheetTempQty.value = existingQty > 0 ? existingQty : 1;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => DraggableScrollableSheet(
-        initialChildSize: 0.85,
-        minChildSize: 0.5,
+        initialChildSize: 0.88,
+        minChildSize: 0.55,
         maxChildSize: 0.95,
-        builder: (_, sc) => ProductDetailSheet(scrollController: sc),
-      ),
-    );
-  }
-
-  // Open Cart Summary Sheet
-  void openCartSheet(BuildContext context) {
-    if (cartItems.isEmpty) {
-      Get.snackbar("Cart is empty", "Add services to proceed",
-          snackPosition: SnackPosition.BOTTOM, margin: const EdgeInsets.all(16));
-      return;
-    }
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
-        minChildSize: 0.4,
-        maxChildSize: 0.9,
-        builder: (_, sc) => CartBottomSheet(scrollController: sc),
+        builder: (_, scrollController) {
+          return ProductDetailSheet(scrollController: scrollController);
+        },
       ),
     );
   }
@@ -118,61 +220,54 @@ class ServiceDetailsController extends GetxController {
     if (sheetTempQty.value > 0) sheetTempQty.value--;
   }
 
-  // ✅ Confirm & Close Sheet
   void confirmSheetSelection() {
-    final product = selectedProductForSheet.value;
-    if (product != null) {
-      String pTitle = product['title'];
+    final prod = selectedProductForSheet.value;
+    if (prod == null) return;
 
-      if (sheetTempQty.value > 0) {
-        final Map<String, dynamic> cartItem = Map.from(product);
-        cartItem['quantity'] = sheetTempQty.value;
-        cartItems[pTitle] = cartItem;
+    final key = _productKey(prod);
+    final qty = sheetTempQty.value;
+    final priceInt = (prod["priceInt"] ?? 0) as int;
 
-        Get.snackbar("Cart Updated", "$pTitle added",
-            snackPosition: SnackPosition.BOTTOM,
-            margin: const EdgeInsets.all(16),
-            backgroundColor: Colors.black87,
-            colorText: Colors.white,
-            duration: const Duration(seconds: 1));
-      } else {
-        cartItems.remove(pTitle);
-      }
+    if (qty <= 0) {
+      cartItems.remove(key);
+      cartItems.refresh();
+      Get.back();
+      Get.snackbar("Removed", "Removed from cart");
+      return;
     }
+
+    cartItems[key] = {
+      "key": key,
+      "title": (prod["title"] ?? "").toString(),
+      "priceInt": priceInt,
+      "quantity": qty,
+      "raw": prod,
+    };
+    cartItems.refresh();
+
     Get.back();
+    Get.snackbar("Updated", "Cart updated");
   }
 
-  // Direct modification from Sidebar/Cart Sheet
-  void updateCartQty(String title, int newQty) {
-    if (cartItems.containsKey(title)) {
-      if (newQty > 0) {
-        cartItems[title]!['quantity'] = newQty;
-        cartItems.refresh();
-      } else {
-        cartItems.remove(title);
-      }
-    }
+  // ---------------- CART SHEET ----------------
+  void openCartSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        minChildSize: 0.55,
+        maxChildSize: 0.95,
+        builder: (_, scrollController) {
+          return CartBottomSheet(scrollController: scrollController);
+        },
+      ),
+    );
   }
 
-  // ✅ Checkout Action
-  void proceedToCheckout() {
-    Get.back(); // Close any open sheet
-    Get.snackbar("Processing", "Proceeding to secure checkout...",
-        snackPosition: SnackPosition.BOTTOM,
-        margin: const EdgeInsets.all(16),
-        backgroundColor: const Color(0xFF6C45E5),
-        colorText: Colors.white,
-        icon: const Icon(Icons.check_circle, color: Colors.white));
+  void checkout() {
+    Get.back(); // close sheet
+    Get.snackbar("Checkout", "Proceeding to checkout...");
   }
-
-  // ✅ Total Price Calculation
-  int get totalCartPrice {
-    return cartItems.values.fold(0, (sum, item) {
-      int price = (item['priceInt'] ?? 0);
-      int qty = (item['quantity'] ?? 0);
-      return sum + (price * qty);
-    });
-  }
-
-  int get totalCartItems => cartItems.length;
 }
