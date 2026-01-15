@@ -1,86 +1,74 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart'; // DateFormat এর জন্য
+import 'package:intl/intl.dart';
 import '../../../../utils/app_colors.dart';
 import 'checkout_controller.dart';
 
-class CheckoutView extends StatelessWidget {
+class CheckoutView extends GetView<CheckoutController> {
   const CheckoutView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(CheckoutController());
-
+    // Controller GetView এর মাধ্যমে আসছে, তাই Get.put দরকার নেই যদি বাইন্ডিং থাকে।
+    // না থাকলে: final controller = Get.put(CheckoutController());
+    
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
+        title: const Text("Checkout"),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           onPressed: () => Get.back(),
         ),
-        title: Text(
-          "Checkout",
-          style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- 1. Date Selection (Horizontal) ---
-            Text("Select Date", style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 15),
-
+            // --- 1. Section Title Style ---
+            _buildSectionTitle("Select Date"),
+            
+            // --- Date Selector ---
             SizedBox(
-              height: 80,
+              height: 90,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
                 itemCount: controller.next7Days.length,
                 itemBuilder: (context, index) {
                   DateTime date = controller.next7Days[index];
-                  bool isSelected = controller.selectedDateIndex.value == index;
-
-                  return Obx(() { // Obx এখানে র‍্যাপ করা হলো রিঅ্যাক্টিভিটির জন্য
-                    bool selected = controller.selectedDateIndex.value == index;
+                  return Obx(() {
+                    bool isSelected = controller.selectedDateIndex.value == index;
                     return GestureDetector(
                       onTap: () => controller.selectDate(index),
-                      child: Container(
-                        width: 65,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        width: 70,
                         margin: const EdgeInsets.only(right: 12),
                         decoration: BoxDecoration(
-                          color: selected ? AppColors.primary : Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: selected ? AppColors.primary : Colors.grey.shade300),
+                          color: isSelected ? AppColors.primary : Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isSelected ? AppColors.primary : AppColors.inputBorder,
+                            width: 1.5
+                          ),
+                          boxShadow: isSelected 
+                            ? [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))]
+                            : [],
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              DateFormat('MMM').format(date), // Month (Ex: Jan)
-                              style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: selected ? Colors.white70 : Colors.grey
-                              ),
+                            Text(DateFormat('MMM').format(date), 
+                              style: TextStyle(fontSize: 12, color: isSelected ? Colors.white70 : AppColors.textGrey)
                             ),
-                            Text(
-                              date.day.toString(), // Day (Ex: 01)
-                              style: GoogleFonts.poppins(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: selected ? Colors.white : Colors.black87
-                              ),
+                            Text(date.day.toString(), 
+                              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : AppColors.textBlack)
                             ),
-                            Text(
-                              DateFormat('E').format(date), // Weekday (Ex: Mon)
-                              style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: selected ? Colors.white70 : Colors.grey
-                              ),
+                            Text(DateFormat('E').format(date), 
+                              style: TextStyle(fontSize: 12, color: isSelected ? Colors.white70 : AppColors.textGrey)
                             ),
                           ],
                         ),
@@ -90,94 +78,114 @@ class CheckoutView extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(height: 25),
+            const SizedBox(height: 30),
 
-            // --- 2. Time Selection (Grid/Chips) ---
-            Text("Select Time", style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 15),
-
+            // --- 2. Time Selector ---
+            _buildSectionTitle("Select Time"),
             Obx(() => Wrap(
               spacing: 12,
               runSpacing: 12,
               children: controller.timeSlots.map((time) {
                 bool isSelected = controller.selectedTimeSlot.value == time;
-                return ChoiceChip(
-                  label: Text(time),
-                  labelStyle: GoogleFonts.poppins(
-                    color: isSelected ? Colors.white : Colors.black87,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                return GestureDetector(
+                  onTap: () => controller.selectTime(time),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.primary : Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: isSelected ? AppColors.primary : AppColors.inputBorder),
+                    ),
+                    child: Text(
+                      time,
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : AppColors.textBlack,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                    ),
                   ),
-                  selected: isSelected,
-                  selectedColor: AppColors.primary,
-                  backgroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  onSelected: (bool selected) {
-                    controller.selectTime(time);
-                  },
                 );
               }).toList(),
             )),
 
             const SizedBox(height: 30),
 
-            // --- 3. Payment Method ---
-            Text("Payment Method", style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 15),
-
-            Container(
-              padding: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Obx(() => Column(
-                children: controller.paymentMethods.map((method) {
-                  bool isSelected = controller.selectedPayment.value == method['name'];
-                  return RadioListTile(
-                    value: method['name'],
-                    groupValue: controller.selectedPayment.value,
-                    onChanged: (val) => controller.selectPaymentMethod(val.toString()),
-                    activeColor: AppColors.primary,
-                    title: Text(
-                      method['name'],
-                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14),
+            // --- 3. Payment Method (Custom Cards) ---
+            _buildSectionTitle("Payment Method"),
+            Obx(() => Column(
+              children: controller.paymentMethods.map((method) {
+                bool isSelected = controller.selectedPayment.value == method['name'];
+                return GestureDetector(
+                  onTap: () => controller.selectPaymentMethod(method['name']),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isSelected ? AppColors.primary : Colors.transparent, 
+                        width: 2
+                      ),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4)),
+                      ],
                     ),
-                    secondary: Icon(method['icon'], color: isSelected ? AppColors.primary : Colors.grey),
-                  );
-                }).toList(),
-              )),
-            ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppColors.scaffoldBackground,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(method['icon'], color: isSelected ? AppColors.primary : AppColors.textGrey),
+                        ),
+                        const SizedBox(width: 15),
+                        Expanded(
+                          child: Text(method['name'], style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                        ),
+                        if (isSelected)
+                          const Icon(Icons.check_circle_rounded, color: AppColors.primary),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            )),
 
-            const SizedBox(height: 100), // Bottom space
+            const SizedBox(height: 50),
           ],
         ),
       ),
 
-      // --- Bottom Bar ---
+      // --- Bottom Confirm Button ---
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -4))],
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -5))],
         ),
         child: SizedBox(
           width: double.infinity,
-          height: 50,
+          height: 55, // Taller button
           child: Obx(() => ElevatedButton(
             onPressed: controller.isLoading.value ? null : controller.placeOrder,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
             child: controller.isLoading.value
                 ? const CircularProgressIndicator(color: Colors.white)
-                : Text(
-              "CONFIRM BOOKING",
-              style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-            ),
+                : const Text("CONFIRM BOOKING"),
           )),
         ),
       ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: Text(title, style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textBlack)),
     );
   }
 }

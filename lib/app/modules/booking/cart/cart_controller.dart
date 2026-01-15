@@ -1,41 +1,44 @@
-import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-
+import 'package:get/get.dart';
+import '../../../../utils/app_colors.dart'; // কালার ইমপোর্ট
 import '../../../data/model/cart_item_model.dart';
 import '../address/address_view.dart';
-import '../coupon/coupon_view.dart'; // কুপন ভিউ ইমপোর্ট করুন
+import '../coupon/coupon_view.dart';
 
 class CartController extends GetxController {
-  // ১. কার্ট আইটেম লিস্ট
+  // ১. স্টেট ভেরিয়েবল
   var cartItems = <CartItem>[].obs;
-
-  // ২. কুপন ও ডিসকাউন্ট ভেরিয়েবল
   var discount = 0.0.obs;
   var appliedCouponCode = "".obs;
 
-  // ডামি ডাটা দিয়ে ইনিশিয়ালাইজ
+  // ২. ইনিশিয়ালাইজেশন (ডামি ডাটা)
   @override
   void onInit() {
     super.onInit();
+    loadDummyData();
+  }
+
+  void loadDummyData() {
     cartItems.addAll([
       CartItem(id: 101, name: "AC Service (Split)", price: 800, image: Icons.ac_unit_rounded),
       CartItem(id: 103, name: "Sofa Deep Cleaning", price: 1200, quantity: 2, image: Icons.chair_rounded),
     ]);
   }
 
-  // ৩. ক্যালকুলেশন গেটার (Getters)
+  // ৩. ক্যালকুলেশন (Getters)
   double get itemTotal => cartItems.fold(0, (sum, item) => sum + (item.price * item.quantity));
+  
+  double get taxAmount => itemTotal * 0.05; // 5% ভ্যাট
 
-  double get taxAmount => itemTotal * 0.05; // 5% ভ্যাট বা ট্যাক্স
+  double get grandTotal {
+    double total = itemTotal + taxAmount - discount.value;
+    return total < 0 ? 0 : total; // টোটাল যেন নেগেটিভ না হয়
+  }
 
-  // গ্র্যান্ড টোটাল (আইটেম + ট্যাক্স - ডিসকাউন্ট)
-  double get grandTotal => itemTotal + taxAmount - discount.value;
-
-  // ৪. কার্ট অ্যাকশন মেথড (Qty Increase/Decrease)
+  // ৪. কার্ট অ্যাকশন (Qty Control)
   void incrementQty(int index) {
     cartItems[index].quantity++;
     cartItems.refresh();
-    // Qty পাল্টালে যদি মিনিমাম অর্ডারের শর্ত থাকে তবে কুপন রি-ভ্যালিডেট করা উচিত (Optional)
   }
 
   void decrementQty(int index) {
@@ -43,6 +46,7 @@ class CartController extends GetxController {
       cartItems[index].quantity--;
     } else {
       cartItems.removeAt(index);
+      // আইটেম মুছে ফেললে কুপন লজিক চেক করা উচিত (এখানে সিম্পল রাখা হলো)
     }
     cartItems.refresh();
   }
@@ -51,23 +55,29 @@ class CartController extends GetxController {
     cartItems.removeAt(index);
   }
 
-  // ৫. কুপন লজিক (নতুন অ্যাড করা হলো)
+  void clearCart() {
+    cartItems.clear();
+    discount.value = 0.0;
+    appliedCouponCode.value = "";
+  }
+
+  // ৫. কুপন ম্যানেজমেন্ট
   void goToCouponPage() async {
-    // CouponView পেজে যাওয়া এবং রেজাল্ট নিয়ে আসা
+    // কুপন পেজ থেকে ডাটা নিয়ে আসা
     var result = await Get.to(() => CouponView(cartTotal: itemTotal));
 
     if (result != null) {
       appliedCouponCode.value = result['code'];
-      // result['amount'] ডাবল বা ইন্টিজার হতে পারে, তাই সেইফ পার্সিং
       discount.value = double.parse(result['amount'].toString());
 
       Get.snackbar(
-          "Applied",
-          "Coupon ${result['code']} applied successfully!",
-          backgroundColor: Colors.green,
+          "Success",
+          "Coupon '${result['code']}' applied successfully!",
+          backgroundColor: AppColors.secondary, // Greenish color
           colorText: Colors.white,
           snackPosition: SnackPosition.BOTTOM,
-          margin: const EdgeInsets.all(20)
+          margin: const EdgeInsets.all(20),
+          borderRadius: 10
       );
     }
   }
@@ -77,19 +87,29 @@ class CartController extends GetxController {
     appliedCouponCode.value = "";
     Get.snackbar(
         "Removed",
-        "Coupon removed successfully",
+        "Coupon has been removed.",
+        backgroundColor: Colors.black87,
+        colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
-        margin: const EdgeInsets.all(20)
+        margin: const EdgeInsets.all(20),
+        borderRadius: 10
     );
   }
 
-  // ৬. চেকআউট নেভিগেশন
+  // ৬. নেভিগেশন
   void proceedToCheckout() {
     if (cartItems.isEmpty) {
-      Get.snackbar("Empty Cart", "Please add services first.");
+      Get.snackbar(
+        "Cart is Empty", 
+        "Please add services to proceed.",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(20)
+      );
       return;
     }
-    // চেকআউটের আগে এড্রেস সিলেক্ট করতে পাঠানো
+    // কার্ট ঠিক থাকলে এড্রেস পেজে পাঠানো
     Get.to(() => const AddressView());
   }
 }

@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:willko_user/app/modules/home/service_details/service_details_view.dart';
 
+// ✅ Checkout পেজ এবং কন্ট্রোলার ইমপোর্ট (আপনার ফোল্ডার স্ট্রাকচার অনুযায়ী)
+import '../../booking/checkout/checkout_view.dart';
+import '../../booking/checkout/checkout_controller.dart';
+
 class ServiceDetailsController extends GetxController {
   ServiceDetailsController({required this.service});
 
@@ -47,20 +51,15 @@ class ServiceDetailsController extends GetxController {
       packagesByItem[selectedItemIndex.value] ?? [];
 
   // ---------------- ✅ SINGLE DYNAMIC BANNER DATA (UI SAME) ----------------
-  /// You are using _DynamicHeroBanner in UI which reads this.
   Map<String, dynamic> get currentBannerData {
-    // ✅ This getter must "touch" selectedItemIndex.value so Obx updates
     final idx = selectedItemIndex.value;
 
-    // fallback info
     final categoryTitle = (items.isNotEmpty && idx < items.length)
         ? (items[idx]["title"] ?? "Service").toString()
         : "Service";
 
-    // You can customize based on service slug/label/category index
     final slug = (service["slug"] ?? "").toString();
 
-    // Default values (modern + user friendly)
     Color bg = const Color(0xFF6C45E5); // purple
     IconData icon = Icons.home_repair_service_rounded;
     String t = "We've got you covered!";
@@ -70,9 +69,8 @@ class ServiceDetailsController extends GetxController {
       "Hassle-free booking",
     ];
 
-    // Some smart mapping for visuals
     if (slug.contains("ac")) {
-      bg = const Color(0xFF7A0B0B); // deep red like your screenshot vibe
+      bg = const Color(0xFF7A0B0B);
       icon = Icons.ac_unit_rounded;
       t = "AC ${categoryTitle.replaceAll('\n', ' ')}";
       bullets = const [
@@ -99,7 +97,6 @@ class ServiceDetailsController extends GetxController {
         "Warranty on service",
       ];
     } else {
-      // generic but still nice
       t = "${title.replaceAll('\n', ' ')}";
       bullets = const [
         "Verified professionals",
@@ -124,7 +121,6 @@ class ServiceDetailsController extends GetxController {
 
   // ---------------- CART HELPERS ----------------
   String _productKey(Map<String, dynamic> p) {
-    // prefer id, fallback to title
     final id = p["id"];
     if (id != null) return id.toString();
     return (p["title"] ?? "unknown").toString();
@@ -155,7 +151,6 @@ class ServiceDetailsController extends GetxController {
     return total;
   }
 
-  /// ✅ “Add” button tap (no sheet)
   void quickAdd(Map<String, dynamic> product) {
     final key = _productKey(product);
     final current = cartItems[key];
@@ -176,7 +171,8 @@ class ServiceDetailsController extends GetxController {
       };
     }
     cartItems.refresh();
-    Get.snackbar("Added", "Added to cart");
+    Get.snackbar("Added", "Added to cart", 
+      snackPosition: SnackPosition.BOTTOM, margin: const EdgeInsets.all(20), backgroundColor: Colors.green, colorText: Colors.white);
   }
 
   void updateCartQty(String key, int newQty) {
@@ -195,7 +191,6 @@ class ServiceDetailsController extends GetxController {
   void openProductDetailsSheet(BuildContext context, Map<String, dynamic> product) {
     selectedProductForSheet.value = product;
 
-    // start qty from cart if exists, else 1
     final existingQty = cartQtyOf(product);
     sheetTempQty.value = existingQty > 0 ? existingQty : 1;
 
@@ -246,7 +241,8 @@ class ServiceDetailsController extends GetxController {
     cartItems.refresh();
 
     Get.back();
-    Get.snackbar("Updated", "Cart updated");
+    Get.snackbar("Updated", "Cart updated", 
+      snackPosition: SnackPosition.BOTTOM, margin: const EdgeInsets.all(20), backgroundColor: Colors.green, colorText: Colors.white);
   }
 
   // ---------------- CART SHEET ----------------
@@ -266,8 +262,29 @@ class ServiceDetailsController extends GetxController {
     );
   }
 
+  // ✅ আপডেটেড: Checkout বাটনে ক্লিক করলে CheckoutView তে নিয়ে যাবে
   void checkout() {
-    Get.back(); // close sheet
-    Get.snackbar("Checkout", "Proceeding to checkout...");
+    Get.back(); // বটম শিট বন্ধ করা
+
+    if (cartItems.isEmpty) {
+       Get.snackbar(
+         "Cart Empty", 
+         "Please add services to proceed.",
+         backgroundColor: Colors.redAccent, 
+         colorText: Colors.white, 
+         snackPosition: SnackPosition.BOTTOM,
+         margin: const EdgeInsets.all(20)
+       );
+       return;
+    }
+    
+    // CheckoutView তে নেভিগেট এবং কন্ট্রোলার বাইন্ড করা
+    Get.to(
+      () => const CheckoutView(),
+      binding: BindingsBuilder(() {
+        Get.put(CheckoutController());
+      }),
+      transition: Transition.cupertino,
+    );
   }
 }
