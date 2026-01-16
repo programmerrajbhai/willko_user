@@ -1,82 +1,76 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import '../../../../utils/app_colors.dart'; // কালার ইমপোর্ট
+import '../../../data/model/address_model.dart';
+import '../../../../utils/app_colors.dart';
+import '../address/address_view.dart';
 import '../success/order_success_view.dart';
 
 class CheckoutController extends GetxController {
-  // 1. Date & Time Selection
+  // --- Address State ---
+  var selectedAddress = Rxn<AddressModel>();
+
+  // --- Date & Time ---
   var selectedDateIndex = 0.obs;
   var selectedTimeSlot = "".obs;
 
-  // আগামী ৭ দিনের লিস্ট
-  List<DateTime> get next7Days {
-    return List.generate(7, (index) => DateTime.now().add(Duration(days: index)));
-  }
+  List<DateTime> get next7Days => List.generate(7, (index) => DateTime.now().add(Duration(days: index)));
 
-  // হেল্পার: বর্তমানে সিলেক্ট করা আসল তারিখটি পাওয়ার জন্য
-  DateTime get selectedDate => next7Days[selectedDateIndex.value];
-
-  // ফিক্সড টাইম স্লট
   final List<String> timeSlots = [
     "10:00 AM", "11:00 AM", "12:00 PM",
     "02:00 PM", "03:00 PM", "04:00 PM",
     "06:00 PM", "07:00 PM", "08:00 PM"
   ];
 
-  // 2. Payment Method
-  var selectedPayment = "Cash on Delivery".obs; 
+  // --- Payment ---
+  var selectedPayment = "Cash on Delivery".obs;
   final List<Map<String, dynamic>> paymentMethods = [
-    {"name": "Cash on Delivery", "icon": Icons.money, "id": "cod"},
-    {"name": "bKash / Nagad", "icon": Icons.account_balance_wallet, "id": "mobile_banking"},
-    {"name": "Credit / Debit Card", "icon": Icons.credit_card, "id": "card"},
+    {"name": "Cash on Delivery", "icon": Icons.money},
+    {"name": "Digital Payment", "icon": Icons.payment},
   ];
 
   var isLoading = false.obs;
 
-  // 3. Actions
-  void selectDate(int index) {
-    selectedDateIndex.value = index;
-    // তারিখ পরিবর্তন করলে টাইম স্লট রিসেট করতে চাইলে নিচের লাইনটি আনকমেন্ট করুন
-    // selectedTimeSlot.value = ""; 
+  @override
+  void onInit() {
+    super.onInit();
+    // যদি আগের পেজ থেকে অ্যাড্রেস আসে
+    if (Get.arguments is AddressModel) {
+      selectedAddress.value = Get.arguments as AddressModel;
+    }
   }
 
-  void selectTime(String time) {
-    selectedTimeSlot.value = time;
+  // ✅ ADDRESS PICKER FUNCTION
+  void pickAddress() async {
+    // AddressView এ যাওয়া এবং রেজাল্ট এর জন্য অপেক্ষা করা
+    var result = await Get.to(() => const AddressView());
+    
+    // যদি ইউজার কোনো অ্যাড্রেস সিলেক্ট করে ব্যাক করে
+    if (result != null && result is AddressModel) {
+      selectedAddress.value = result;
+    }
   }
 
-  void selectPaymentMethod(String method) {
-    selectedPayment.value = method;
-  }
+  void selectDate(int index) => selectedDateIndex.value = index;
+  void selectTime(String time) => selectedTimeSlot.value = time;
+  void selectPaymentMethod(String method) => selectedPayment.value = method;
 
-  // 4. Final Order Place
   void placeOrder() async {
-    // ভ্যালিডেশন: সময় সিলেক্ট করা না থাকলে
+    // Validation
+    if (selectedAddress.value == null) {
+      Get.snackbar("Address Required", "Please select a service address.", 
+        backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM, margin: const EdgeInsets.all(20));
+      return;
+    }
     if (selectedTimeSlot.value.isEmpty) {
-      Get.snackbar(
-        "Time Slot Required", 
-        "Please select a preferred time for service.",
-        backgroundColor: Colors.redAccent, 
-        colorText: Colors.white, 
-        snackPosition: SnackPosition.BOTTOM,
-        margin: const EdgeInsets.all(20),
-        borderRadius: 10,
-      );
+      Get.snackbar("Time Required", "Please select a preferred time slot.", 
+        backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM, margin: const EdgeInsets.all(20));
       return;
     }
 
     isLoading.value = true;
-
-    // ডিবাগ: কি অর্ডার হচ্ছে তা দেখা
-    String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
-    print("Booking Info: Date: $formattedDate, Time: ${selectedTimeSlot.value}, Payment: ${selectedPayment.value}");
-
-    // ফেক এপিআই কল (২ সেকেন্ড)
-    await Future.delayed(const Duration(seconds: 2)); 
-
+    await Future.delayed(const Duration(seconds: 2));
     isLoading.value = false;
-
-    // সফল হলে সাকসেস পেজে যাওয়া
     Get.offAll(() => const OrderSuccessView());
   }
 }
