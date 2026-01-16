@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Haptic Feedback
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import '../../../data/model/address_model.dart';
 import '../../../../utils/app_colors.dart';
 import '../address/address_view.dart';
 import '../success/order_success_view.dart';
 
 class CheckoutController extends GetxController {
-  // --- Address State ---
+  // --- Address ---
   var selectedAddress = Rxn<AddressModel>();
 
   // --- Date & Time ---
   var selectedDateIndex = 0.obs;
   var selectedTimeSlot = "".obs;
 
-  List<DateTime> get next7Days => List.generate(7, (index) => DateTime.now().add(Duration(days: index)));
+  List<DateTime> get next7Days => List.generate(14, (index) => DateTime.now().add(Duration(days: index)));
 
   final List<String> timeSlots = [
     "10:00 AM", "11:00 AM", "12:00 PM",
@@ -25,8 +25,8 @@ class CheckoutController extends GetxController {
   // --- Payment ---
   var selectedPayment = "Cash on Delivery".obs;
   final List<Map<String, dynamic>> paymentMethods = [
-    {"name": "Cash on Delivery", "icon": Icons.money},
-    {"name": "Digital Payment", "icon": Icons.payment},
+    {"name": "Cash on Delivery", "icon": Icons.money_rounded, "desc": "Pay after service"},
+    {"name": "Digital Payment", "icon": Icons.account_balance_wallet_rounded, "desc": "bKash / Card"},
   ];
 
   var isLoading = false.obs;
@@ -34,37 +34,45 @@ class CheckoutController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // যদি আগের পেজ থেকে অ্যাড্রেস আসে
     if (Get.arguments is AddressModel) {
       selectedAddress.value = Get.arguments as AddressModel;
     }
   }
 
-  // ✅ ADDRESS PICKER FUNCTION
+  // --- Actions with Vibrations ---
+
   void pickAddress() async {
-    // AddressView এ যাওয়া এবং রেজাল্ট এর জন্য অপেক্ষা করা
+    HapticFeedback.lightImpact(); // Vibration
     var result = await Get.to(() => const AddressView());
-    
-    // যদি ইউজার কোনো অ্যাড্রেস সিলেক্ট করে ব্যাক করে
     if (result != null && result is AddressModel) {
       selectedAddress.value = result;
     }
   }
 
-  void selectDate(int index) => selectedDateIndex.value = index;
-  void selectTime(String time) => selectedTimeSlot.value = time;
-  void selectPaymentMethod(String method) => selectedPayment.value = method;
+  void selectDate(int index) {
+    HapticFeedback.selectionClick();
+    selectedDateIndex.value = index;
+  }
+
+  void selectTime(String time) {
+    HapticFeedback.mediumImpact();
+    selectedTimeSlot.value = time;
+  }
+
+  void selectPaymentMethod(String method) {
+    HapticFeedback.selectionClick();
+    selectedPayment.value = method;
+  }
 
   void placeOrder() async {
-    // Validation
+    HapticFeedback.heavyImpact(); // Strong Vibration
+
     if (selectedAddress.value == null) {
-      Get.snackbar("Address Required", "Please select a service address.", 
-        backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM, margin: const EdgeInsets.all(20));
+      Get.snackbar("Address Missing", "Please select a location.", backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM, margin: const EdgeInsets.all(20));
       return;
     }
     if (selectedTimeSlot.value.isEmpty) {
-      Get.snackbar("Time Required", "Please select a preferred time slot.", 
-        backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM, margin: const EdgeInsets.all(20));
+      Get.snackbar("Time Missing", "Select a preferred time.", backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM, margin: const EdgeInsets.all(20));
       return;
     }
 

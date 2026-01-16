@@ -1,113 +1,146 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Haptic Feedback
 import 'package:get/get.dart';
 import '../../../data/model/address_model.dart';
-import '../checkout/checkout_view.dart';
 import 'add_address_view.dart';
 
 class AddressController extends GetxController {
+  // --- UI State ---
   var addressList = <AddressModel>[].obs;
   var isLoading = true.obs;
+  var isMapLoading = false.obs; // ম্যাপ লোডিং স্ট্যাটাস
+  var isSaving = false.obs;
 
-  // ফর্ম ভেরিয়েবলস
+  // --- Form Controllers (TextEditingController) ---
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  final nameController = TextEditingController();
-  final phoneController = TextEditingController();
-  final addressController = TextEditingController();
-  final cityController = TextEditingController();
-  final zipController = TextEditingController();
+  late TextEditingController nameController;
+  late TextEditingController phoneController;
+  late TextEditingController addressController;
+  late TextEditingController cityController;
+  late TextEditingController zipController;
   
   var selectedType = "Home".obs;
-  var isSaving = false.obs;
 
   @override
   void onInit() {
     super.onInit();
+    // কন্ট্রোলারগুলো ইনিশিয়ালাইজ করা
+    nameController = TextEditingController();
+    phoneController = TextEditingController();
+    addressController = TextEditingController();
+    cityController = TextEditingController();
+    zipController = TextEditingController();
+    
     loadAddresses();
   }
 
+  // --- Dummy Data Load ---
   void loadAddresses() async {
     isLoading.value = true;
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future.delayed(const Duration(milliseconds: 800));
     addressList.addAll([
-      AddressModel(id: "1", type: "Home", address: "Flat 4B, House 12, Road 5, Dhanmondi, Dhaka", phone: "+8801710000000", isSelected: true),
-      AddressModel(id: "2", type: "Office", address: "Level 10, UTC Building, Karwan Bazar, Dhaka", phone: "+8801910000000"),
+      AddressModel(id: "1", type: "Home", address: "Flat 4B, House 12, Dhanmondi 32, Dhaka", phone: "01710000000", isSelected: true),
+      AddressModel(id: "2", type: "Office", address: "Level 10, UTC Building, Karwan Bazar, Dhaka", phone: "01910000000"),
     ]);
     isLoading.value = false;
   }
 
-  // ✅ ১. সিলেক্ট করার লজিক (Urban Company Style)
-  // লিস্টে ট্যাপ করলেই সিলেক্ট হবে এবং ব্যাকে চলে যাবে
+  // --- 1. Address Selection Logic ---
   void selectAddress(int index) {
-    // UI আপডেট
+    HapticFeedback.selectionClick(); // হালকা ভাইব্রেশন
     for (var item in addressList) item.isSelected = false;
     addressList[index].isSelected = true;
     addressList.refresh();
-
-    // সিলেক্টেড অ্যাড্রেস নিয়ে চেকআউটে ফিরে যাওয়া
-    Future.delayed(const Duration(milliseconds: 200), () {
-      Get.back(result: addressList[index]);
-    });
   }
 
-  // ✅ ২. বাটন ক্লিক হ্যান্ডলার (এরর ফিক্স)
+  // --- 2. Confirm Button Logic (Fixes 'goToCheckout' error) ---
   void goToCheckout() {
     var selected = addressList.firstWhereOrNull((element) => element.isSelected);
     
     if (selected == null) {
-      Get.snackbar("Select Address", "Please select a delivery address.");
+      Get.snackbar("Select Address", "Please select a delivery address.",
+          backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
       return;
     }
     
-    // রেজাল্ট নিয়ে ব্যাক করা (কারণ আমরা চেকআউট থেকেই এসেছি)
+    // চেকআউট পেজে ডাটা নিয়ে ফিরে যাওয়া
     Get.back(result: selected);
+  }
+
+  // --- 3. Map Simulation Logic (Real Feel) ---
+  void pickLocationFromMap() async {
+    HapticFeedback.mediumImpact();
+    isMapLoading.value = true;
     
-    // নোট: যদি আপনি কার্ট থেকে সরাসরি আসেন, তাহলে নিচের লাইনটি ব্যবহার করতে পারেন:
-    // Get.to(() => const CheckoutView(), arguments: selected);
+    // রিয়েল ম্যাপ লোডিং ফিল দেওয়ার জন্য স্ন্যাকবার
+    Get.snackbar("Locating...", "Fetching location from GPS satellite...", 
+      showProgressIndicator: true, 
+      backgroundColor: Colors.black, 
+      colorText: Colors.white, 
+      snackPosition: SnackPosition.BOTTOM, 
+      margin: const EdgeInsets.all(20),
+      borderRadius: 10
+    );
+
+    await Future.delayed(const Duration(seconds: 2));
+
+    // অটোমেটিক ডাটা বসিয়ে দেওয়া
+    addressController.text = "House 56, Road 11, Banani";
+    cityController.text = "Dhaka";
+    zipController.text = "1213";
+    
+    isMapLoading.value = false;
+    HapticFeedback.heavyImpact(); // সাকসেস ভাইব্রেশন
+    
+    Get.snackbar("Location Found", "Address auto-filled successfully!", 
+      backgroundColor: Colors.green, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM, margin: const EdgeInsets.all(20));
   }
 
-  void deleteAddress(int index) {
-    addressList.removeAt(index);
-    Get.snackbar("Deleted", "Address removed successfully", 
-      snackPosition: SnackPosition.BOTTOM, margin: const EdgeInsets.all(20));
+  // --- 4. Save Logic ---
+  void changeType(String type) {
+    HapticFeedback.selectionClick();
+    selectedType.value = type;
   }
-
-  void goToAddAddress() {
-    _clearForm();
-    Get.to(() => const AddressView());
-  }
-
-  // --- Add Address Logic ---
-  void changeType(String type) => selectedType.value = type;
 
   void saveAddress() async {
+    HapticFeedback.lightImpact();
     if (!formKey.currentState!.validate()) return;
 
     isSaving.value = true;
-    await Future.delayed(const Duration(seconds: 1)); // Fake API
+    await Future.delayed(const Duration(seconds: 1)); 
 
     var newAddress = AddressModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       type: selectedType.value,
       address: "${addressController.text}, ${cityController.text}",
       phone: phoneController.text,
-      isSelected: true, // নতুনটাই সিলেক্ট হবে
+      isSelected: true,
     );
 
-    // আগেরগুলো আন-সিলেক্ট করা
+    // লিস্টের শুরুতে নতুন অ্যাড্রেস যোগ করা
     for (var item in addressList) item.isSelected = false;
+    addressList.insert(0, newAddress);
     
-    addressList.insert(0, newAddress); // নতুনটা সবার উপরে
     isSaving.value = false;
 
-    Get.back(); // ফর্ম বন্ধ
+    Get.back(); // পেজ বন্ধ
+    Get.back(result: newAddress); // চেকআউটে ডাটা পাঠানো
     
-    // সাথে সাথে চেকআউটে রিটার্ন করা (অটোমেটিক)
-    Get.back(result: newAddress); 
-    
-    Get.snackbar("Success", "Address added & selected!", 
-      backgroundColor: Colors.green, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM, margin: const EdgeInsets.all(20));
+    Get.snackbar("Saved", "Address added successfully", 
+      backgroundColor: Colors.black, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM, margin: const EdgeInsets.all(20));
       
     _clearForm();
+  }
+
+  // --- Navigation & Cleanup ---
+  void goToAddAddress() {
+    _clearForm();
+    Get.to(() => const AddAddressView());
+  }
+
+  void deleteAddress(int index) {
+    addressList.removeAt(index);
+    HapticFeedback.mediumImpact();
   }
 
   void _clearForm() {
@@ -117,5 +150,15 @@ class AddressController extends GetxController {
     cityController.clear();
     zipController.clear();
     selectedType.value = "Home";
+  }
+  
+  @override
+  void onClose() {
+    nameController.dispose();
+    phoneController.dispose();
+    addressController.dispose();
+    cityController.dispose();
+    zipController.dispose();
+    super.onClose();
   }
 }
