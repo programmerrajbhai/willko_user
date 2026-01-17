@@ -10,6 +10,6 @@ class AddressModel {
     required this.type,
     required this.address,
     required this.phone,
-    this.isSelected = false,
+    this.isSelected = false, required String fullName, required String addressLine, required String city, required String zip,
   });
 }
