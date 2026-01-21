@@ -22,7 +22,11 @@ class AddressView extends StatelessWidget {
         ),
         title: Text(
           "Select Address",
-          style: GoogleFonts.manrope(color: Colors.black87, fontWeight: FontWeight.w800, fontSize: 17),
+          style: GoogleFonts.manrope(
+            color: Colors.black87, 
+            fontWeight: FontWeight.w800, 
+            fontSize: 17
+          ),
         ),
         centerTitle: true,
       ),
@@ -42,7 +46,7 @@ class AddressView extends StatelessWidget {
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       children: [
-                        // --- Add New Button (Top) ---
+                        // --- Add New Button ---
                         InkWell(
                           onTap: controller.goToAddAddress,
                           borderRadius: BorderRadius.circular(16),
@@ -52,7 +56,7 @@ class AddressView extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppColors.primary.withOpacity(0.5), style: BorderStyle.solid),
+                              border: Border.all(color: AppColors.primary.withOpacity(0.5)),
                               boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
                             ),
                             child: Row(
@@ -67,7 +71,7 @@ class AddressView extends StatelessWidget {
                         ),
                         const SizedBox(height: 25),
 
-                        // --- List ---
+                        // --- Address List ---
                         if (controller.addressList.isEmpty)
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 40),
@@ -106,6 +110,7 @@ class AddressView extends StatelessWidget {
                                   child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
+                                      // Icon
                                       Container(
                                         padding: const EdgeInsets.all(10),
                                         decoration: BoxDecoration(
@@ -119,6 +124,8 @@ class AddressView extends StatelessWidget {
                                         ),
                                       ),
                                       const SizedBox(width: 15),
+                                      
+                                      // Details
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,12 +133,19 @@ class AddressView extends StatelessWidget {
                                             Row(
                                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                               children: [
-                                                Text(item.type, style: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 16, color: Colors.black87)),
+                                                Expanded(
+                                                  child: Text(
+                                                    "${item.type} • ${item.fullName}", 
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                    style: GoogleFonts.manrope(fontWeight: FontWeight.w800, fontSize: 16, color: Colors.black87),
+                                                  ),
+                                                ),
                                                 if (item.isSelected)
                                                   Container(
                                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                                     decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(20)),
-                                                    child: Text("DEFAULT", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                                    child: const Text("DEFAULT", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                                                   )
                                                 else
                                                   InkWell(
@@ -141,9 +155,19 @@ class AddressView extends StatelessWidget {
                                               ],
                                             ),
                                             const SizedBox(height: 6),
-                                            Text(item.address, style: GoogleFonts.manrope(color: Colors.grey.shade600, fontSize: 13, height: 1.4)),
+                                            // ✅ Fix: Use addressLine instead of address
+                                            Text(
+                                              item.addressLine, 
+                                              style: GoogleFonts.manrope(color: Colors.grey.shade600, fontSize: 13, height: 1.4),
+                                            ),
                                             const SizedBox(height: 6),
-                                            Text(item.phone, style: GoogleFonts.manrope(color: Colors.black87, fontSize: 13, fontWeight: FontWeight.w600)),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.phone_android_rounded, size: 14, color: Colors.grey.shade500),
+                                                const SizedBox(width: 4),
+                                                Text(item.phone, style: GoogleFonts.manrope(color: Colors.black87, fontSize: 12, fontWeight: FontWeight.w600)),
+                                              ],
+                                            ),
                                           ],
                                         ),
                                       ),

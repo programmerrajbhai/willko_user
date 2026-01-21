@@ -10,12 +10,16 @@ class CheckoutView extends GetView<CheckoutController> {
 
   @override
   Widget build(BuildContext context) {
+    // Ensure Controller is loaded
     Get.put(CheckoutController());
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA), // Premium Light Background
       appBar: AppBar(
-        title: Text("Checkout", style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.black)),
+        title: Text(
+          "Checkout", 
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.black)
+        ),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
@@ -33,13 +37,13 @@ class CheckoutView extends GetView<CheckoutController> {
         padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
         child: Column(
           children: [
-            // ✅ Animated Content Entry
+            // ✅ Animated Sections
             _SlideInAnimation(delay: 100, child: _buildAddressSection()),
-            const SizedBox(height: 20),
+            const SizedBox(height: 25),
             _SlideInAnimation(delay: 200, child: _buildDateSection()),
-            const SizedBox(height: 20),
+            const SizedBox(height: 25),
             _SlideInAnimation(delay: 300, child: _buildTimeSection()),
-            const SizedBox(height: 20),
+            const SizedBox(height: 25),
             _SlideInAnimation(delay: 400, child: _buildPaymentSection()),
           ],
         ),
@@ -57,6 +61,8 @@ class CheckoutView extends GetView<CheckoutController> {
         _sectionTitle("LOCATION"),
         Obx(() {
           final addr = controller.selectedAddress.value;
+          
+          // Empty State
           if (addr == null) {
             return BouncyButton(
               onTap: controller.pickAddress,
@@ -79,6 +85,8 @@ class CheckoutView extends GetView<CheckoutController> {
               ),
             );
           }
+
+          // Selected Address Card
           return BouncyButton(
             onTap: controller.pickAddress,
             child: Container(
@@ -87,13 +95,14 @@ class CheckoutView extends GetView<CheckoutController> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
+                border: Border.all(color: Colors.grey.shade100),
               ),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(color: AppColors.scaffoldBackground, borderRadius: BorderRadius.circular(12)),
-                    child: Icon(addr.type == "Home" ? Icons.home_rounded : Icons.business_rounded, color: Colors.black87),
+                    decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                    child: Icon(addr.type == "Home" ? Icons.home_rounded : Icons.business_rounded, color: AppColors.primary),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -102,7 +111,12 @@ class CheckoutView extends GetView<CheckoutController> {
                       children: [
                         Text(addr.type, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16)),
                         const SizedBox(height: 4),
-                        Text(addr.address, style: GoogleFonts.poppins(color: Colors.grey.shade600, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
+                        Text(
+                          addr.addressLine.isNotEmpty ? addr.addressLine : addr.address, 
+                          style: GoogleFonts.poppins(color: Colors.grey.shade600, fontSize: 13), 
+                          maxLines: 1, 
+                          overflow: TextOverflow.ellipsis
+                        ),
                       ],
                     ),
                   ),
@@ -120,15 +134,15 @@ class CheckoutView extends GetView<CheckoutController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionTitle("DATE"),
+        _sectionTitle("SELECT DATE"),
         SizedBox(
           height: 90,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: controller.next7Days.length,
+            itemCount: controller.next14Days.length,
             physics: const BouncingScrollPhysics(),
             itemBuilder: (context, index) {
-              DateTime date = controller.next7Days[index];
+              DateTime date = controller.next14Days[index];
               return Obx(() {
                 bool isSelected = controller.selectedDateIndex.value == index;
                 return BouncyButton(
@@ -168,7 +182,7 @@ class CheckoutView extends GetView<CheckoutController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionTitle("TIME"),
+        _sectionTitle("PREFERRED TIME"),
         Obx(() => Wrap(
           spacing: 12,
           runSpacing: 12,
@@ -182,11 +196,12 @@ class CheckoutView extends GetView<CheckoutController> {
                 decoration: BoxDecoration(
                   color: isSelected ? AppColors.primary : Colors.white,
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: isSelected ? AppColors.primary : Colors.grey.shade200),
                   boxShadow: isSelected 
                       ? [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))] 
                       : [BoxShadow(color: Colors.grey.withOpacity(0.05), blurRadius: 5)],
                 ),
-                child: Text(time, style: TextStyle(color: isSelected ? Colors.white : Colors.black87, fontWeight: FontWeight.bold)),
+                child: Text(time, style: TextStyle(color: isSelected ? Colors.white : Colors.black87, fontWeight: FontWeight.bold, fontSize: 13)),
               ),
             );
           }).toList(),
@@ -199,7 +214,7 @@ class CheckoutView extends GetView<CheckoutController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionTitle("PAYMENT"),
+        _sectionTitle("PAYMENT METHOD"),
         Obx(() => Column(
           children: controller.paymentMethods.map((method) {
             bool isSelected = controller.selectedPayment.value == method['name'];
@@ -212,14 +227,20 @@ class CheckoutView extends GetView<CheckoutController> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: isSelected ? AppColors.primary : Colors.transparent, width: 2),
+                  border: Border.all(
+                    color: isSelected ? AppColors.primary : Colors.transparent, 
+                    width: 2
+                  ),
                   boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
                 ),
                 child: Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.grey.shade50, shape: BoxShape.circle),
+                      decoration: BoxDecoration(
+                        color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.grey.shade50, 
+                        shape: BoxShape.circle
+                      ),
                       child: Icon(method['icon'], color: isSelected ? AppColors.primary : Colors.grey, size: 24),
                     ),
                     const SizedBox(width: 16),
@@ -232,7 +253,10 @@ class CheckoutView extends GetView<CheckoutController> {
                         ],
                       ),
                     ),
-                    if (isSelected) const Icon(Icons.check_circle, color: AppColors.primary, size: 22),
+                    if (isSelected) 
+                      Icon(Icons.check_circle, color: AppColors.primary, size: 24)
+                    else 
+                      Icon(Icons.radio_button_unchecked, color: Colors.grey.shade300, size: 24),
                   ],
                 ),
               ),
@@ -323,6 +347,12 @@ class _BouncyButtonState extends State<BouncyButton> with SingleTickerProviderSt
       onTapCancel: () => _controller.reverse(),
       child: ScaleTransition(scale: _scale, child: widget.child),
     );
+  }
+  
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }
 
