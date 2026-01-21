@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:willko_user/app/data/services/api_service.dart';
-import 'service_details/service_details_view.dart';
+import 'service_details/service_details_view.dart'; // ইমপোর্ট নিশ্চিত করুন
 
 class HomeController extends GetxController {
   // --- Loading State ---
   var isLoading = true.obs;
 
-  // --- Dynamic Data Lists (API from Admin Panel) ---
+  // --- Dynamic Data Lists ---
   var banners = <Map<String, dynamic>>[].obs;
   var categories = <Map<String, dynamic>>[].obs;
   var popularServices = <Map<String, dynamic>>[].obs;
@@ -19,7 +19,7 @@ class HomeController extends GetxController {
   // --- Selection ---
   final selectedCategoryIndex = (-1).obs;
 
-  // --- Static Data (Why Section) ---
+  // --- Static Data ---
   final whyItems = [
     {
       "icon": Icons.star_rounded,
@@ -44,7 +44,7 @@ class HomeController extends GetxController {
     fetchDashboardData();
   }
 
-  // ✅ API কল ফাংশন
+  // ✅ হোম পেজের ডাটা আনার API কল
   void fetchDashboardData() async {
     try {
       isLoading.value = true;
@@ -77,15 +77,28 @@ class HomeController extends GetxController {
 
   void pickCity(String city) => selectedCity.value = city;
 
-  // ক্যাটাগরি সিলেক্ট করা
+  // ✅ ক্যাটাগরি ক্লিক -> ডিটেইলস পেজ নেভিগেশন
   void onCategoryTap(int index) {
     selectedCategoryIndex.value = index;
-    // এখানে আপনি চাইলে ফিল্টার লজিক বসাতে পারেন
-    print("Selected Category: ${categories[index]['name']}");
+    
+    // যে ক্যাটাগরিতে ক্লিক করা হয়েছে তার ডাটা
+    var selectedCategory = categories[index];
+
+    // ServiceDetailsView তে যাওয়া হচ্ছে এবং ডাটা পাস করা হচ্ছে
+    Get.to(
+      () => const ServiceDetailsView(), 
+      arguments: selectedCategory, // আর্গুমেন্ট হিসেবে ম্যাপ পাস হচ্ছে
+      transition: Transition.cupertino
+    );
   }
 
-  // সার্ভিস ডিটেইলস পেজে যাওয়া
+  // পপুলার সার্ভিস ক্লিক হ্যান্ডলার
   void openServiceDetails(Map<String, dynamic> service) {
-    Get.to(() => const ServiceDetailsView(), arguments: service);
+    // এখানেও একই ভিউ রিইউজ করা হচ্ছে
+    Get.to(
+      () => const ServiceDetailsView(), 
+      arguments: service,
+      transition: Transition.cupertino
+    );
   }
 }
