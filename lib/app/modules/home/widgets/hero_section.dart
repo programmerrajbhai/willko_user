@@ -1,8 +1,12 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:willko_user/app/modules/home/home_controller.dart';
+import 'package:willko_user/utils/app_colors.dart';
 import '../../auth/login/login_view.dart';
 import '../../auth/signup/signup_view.dart';
+import '../../home/search/search_view.dart';
 
 class UrbanHeroSection extends StatelessWidget {
   final String selectedCityText;
@@ -16,68 +20,394 @@ class UrbanHeroSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final HomeController controller = Get.find<HomeController>();
     final size = MediaQuery.sizeOf(context);
-    final bool isMobile = size.width < 700;
-    final double heroHeight = isMobile ? 520 : (size.height * 0.90).clamp(620.0, 900.0);
-    final double sidePad = (size.width >= 1100) ? 60 : 22;
+    final bool isMobile = size.width < 900; // মোবাইল ব্রেকপয়েন্ট
 
-    return SizedBox(
+    // হাইট এডজাস্টমেন্ট
+    final double heroHeight = isMobile
+        ? 850
+        : (size.height * 0.90).clamp(650.0, 900.0);
+    final double sidePad = (size.width >= 1100) ? 80 : 24;
+
+    return Container(
       height: heroHeight,
       width: double.infinity,
-      child: Container(
-        color: Colors.black,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: SizedBox(
-                  width: isMobile ? double.infinity : size.width * 0.55,
-                  child: Image.asset(
-                    "assets/images/service_man.jpg",
-                    fit: BoxFit.cover,
-                    alignment: Alignment.centerLeft,
-                    errorBuilder: (c,o,s) => Container(color: Colors.grey[900]),
-                  ),
+      // ✅ 1. Background: Clean Dark Gradient (No Image Here)
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF0F0F0F), Color(0xFF1A1A1A)], // Deep Matte Black
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Stack(
+        children: [
+          // Decorative Background Glows (Optional)
+         Positioned(
+  top: -100, right: -100,
+  child: ImageFiltered( // ✅ Container কে ImageFiltered দিয়ে র‍্যাপ করা হয়েছে
+    imageFilter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
+    child: Container(
+      height: 400, width: 400,
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.15),
+        shape: BoxShape.circle,
+      ),
+    ),
+  ),
+),
+
+          // ✅ Main Content Layer
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: sidePad, vertical: 30),
+            child: Column(
+              children: [
+                // --- Top Navbar ---
+                Row(
+                  children: [
+                    const _BrandLogo(),
+                    const Spacer(),
+                    Obx(() => _buildAuthSection(context, controller, isMobile)),
+                  ],
                 ),
-              ),
-            ),
-            Positioned.fill(
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color.fromARGB(0, 0, 0, 0), Color.fromARGB(255, 0, 0, 0)],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: sidePad, vertical: 26),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      const _UcLogo(),
-                      const Spacer(),
-                      _HoverNavText(text: "Register As A Professional", underlineByDefault: true, onTap: () => Get.to(() => const SignUpView())),
-                      const SizedBox(width: 26),
-                      _HoverNavText(text: "Login / Sign Up", onTap: () => Get.to(() => const LoginView())),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Expanded(
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 520),
-                        child: _HeroRightContent(
-                          selectedCityText: selectedCityText,
-                          onPickCity: onPickCity,
-                          isMobile: isMobile,
-                        ),
+
+                const Spacer(), // ভার্টিক্যাল স্পেস
+                // --- Split Layout: Left (Text) | Right (Image) ---
+                isMobile
+                    ? Column(
+                        children: [
+                          _HeroContentBox(
+                            selectedCityText: selectedCityText,
+                            onPickCity: onPickCity,
+                            isMobile: true,
+                          ),
+                          const SizedBox(height: 40),
+                          const _HeroImageDisplay(isMobile: true),
+                        ],
+                      )
+                    : Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Left Content
+                          Expanded(
+                            flex: 5,
+                            child: _HeroContentBox(
+                              selectedCityText: selectedCityText,
+                              onPickCity: onPickCity,
+                              isMobile: false,
+                            ),
+                          ),
+                          const SizedBox(width: 40),
+                          // Right Image
+                          Expanded(
+                            flex: 4,
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: const _HeroImageDisplay(isMobile: false),
+                            ),
+                          ),
+                        ],
                       ),
+
+                const Spacer(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ✅ Auth Logic UI
+  Widget _buildAuthSection(
+    BuildContext context,
+    HomeController controller,
+    bool isMobile,
+  ) {
+    if (controller.isLoggedIn.value) {
+      return _ProProfileMenu(
+        userName: controller.userName.value,
+        onLogout: controller.logout,
+      );
+    } else {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _GlassButton(
+            text: "Login",
+            onTap: () => Get.to(() => const LoginView()),
+            isPrimary: false,
+          ),
+          const SizedBox(width: 16),
+          _GlassButton(
+            text: "Sign Up",
+            onTap: () => Get.to(() => const SignUpView()),
+            isPrimary: true,
+          ),
+        ],
+      );
+    }
+  }
+}
+
+// --- 🔥 HERO IMAGE DISPLAY (RIGHT SIDE) ---
+class _HeroImageDisplay extends StatelessWidget {
+  final bool isMobile;
+  const _HeroImageDisplay({required this.isMobile});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: isMobile ? 350 : 500,
+      width: isMobile ? double.infinity : 400,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        // ✅ Professional Shadow & Border
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3), // Shadow Gray
+            blurRadius: 40,
+            spreadRadius: -5,
+            offset: const Offset(10, 20),
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.5),
+            blurRadius: 30,
+            spreadRadius: -5,
+            offset: const Offset(-5, -5),
+          ),
+        ],
+        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Image
+            Image.asset(
+              "assets/images/service_man.jpg", // অথবা hero_worker.jpeg
+              fit: BoxFit.cover,
+            ),
+            // Gradient Overlay on Image (For Pro Look)
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.transparent, Colors.black.withOpacity(0.4)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+            // Optional Badge on Image
+            Positioned(
+              bottom: 20,
+              left: 20,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    color: Colors.white.withOpacity(0.2),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.verified,
+                          color: Colors.blueAccent,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          "Verified Professionals",
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// --- CONTENT WIDGETS ---
+
+class _HeroContentBox extends StatelessWidget {
+  final String selectedCityText;
+  final VoidCallback onPickCity;
+  final bool isMobile;
+
+  const _HeroContentBox({
+    required this.selectedCityText,
+    required this.onPickCity,
+    required this.isMobile,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Tagline
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.primary.withOpacity(0.5)),
+            borderRadius: BorderRadius.circular(30),
+            color: AppColors.primary.withOpacity(0.1),
+          ),
+          child: Text(
+            "TRUSTED BY MILLIONS",
+            style: GoogleFonts.montserrat(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primary,
+              letterSpacing: 1.5,
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // Massive Headline
+        Text(
+          "Home services,\nredefined.",
+          style: GoogleFonts.playfairDisplay(
+            fontSize: isMobile ? 42 : 72,
+            height: 1.05,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Subtitle
+        Text(
+          "Book trusted professionals for cleaning, repair, and grooming. Experience luxury at your doorstep.",
+          style: GoogleFonts.poppins(
+            fontSize: isMobile ? 15 : 18,
+            color: Colors.grey.shade400,
+            height: 1.6,
+            fontWeight: FontWeight.w300,
+          ),
+        ),
+        const SizedBox(height: 40),
+
+        // 🔍 Search Bar (Floating)
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.15),
+                blurRadius: 40,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: isMobile
+              ? Column(
+                  children: [
+                    _buildLocationRow(),
+                    const Divider(height: 1),
+                    _buildSearchRow(),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Expanded(flex: 2, child: _buildLocationRow()),
+                    Container(
+                      width: 1,
+                      height: 30,
+                      color: Colors.grey.shade300,
+                    ),
+                    Expanded(flex: 3, child: _buildSearchRow()),
+                    const SizedBox(width: 8),
+                    _buildSearchButton(),
+                  ],
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLocationRow() {
+    return InkWell(
+      onTap: onPickCity,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            const Icon(Icons.location_on, color: AppColors.primary, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Location",
+                    style: GoogleFonts.poppins(
+                      fontSize: 10,
+                      color: Colors.grey.shade500,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Text(
+                    selectedCityText,
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchRow() {
+    return InkWell(
+      onTap: () => Get.to(() => const SearchView()),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Search",
+                    style: GoogleFonts.poppins(
+                      fontSize: 10,
+                      color: Colors.grey.shade500,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Text(
+                    "AC Repair, Cleaning...",
+                    style: GoogleFonts.poppins(
+                      color: Colors.grey.shade400,
+                      fontSize: 14,
                     ),
                   ),
                 ],
@@ -88,51 +418,131 @@ class UrbanHeroSection extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildSearchButton() {
+    return Container(
+      height: 48,
+      width: 48,
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: const Icon(Icons.search, color: Colors.white, size: 24),
+    );
+  }
 }
 
-class _HeroRightContent extends StatelessWidget {
-  final String selectedCityText;
-  final VoidCallback onPickCity;
-  final bool isMobile;
+// --- HELPER WIDGETS ---
 
-  const _HeroRightContent({required this.selectedCityText, required this.onPickCity, required this.isMobile});
+class _BrandLogo extends StatelessWidget {
+  const _BrandLogo();
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          height: 40,
+          width: 40,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.white, Colors.grey.shade200],
+            ),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Center(
+            child: Text(
+              "W",
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 22,
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          "WILLKO",
+          style: GoogleFonts.montserrat(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: Colors.white,
+            letterSpacing: 1,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ProProfileMenu extends StatelessWidget {
+  final String userName;
+  final VoidCallback onLogout;
+  const _ProProfileMenu({required this.userName, required this.onLogout});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(top: isMobile ? 6 : 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text("Willko Service", style: GoogleFonts.poppins(fontSize: 12, letterSpacing: 4, color: Colors.white.withOpacity(.65), fontWeight: FontWeight.w600)),
-          const SizedBox(height: 14),
-          Text("Quality home services, on\ndemand", style: GoogleFonts.poppins(fontSize: isMobile ? 30 : 38, height: 1.08, fontWeight: FontWeight.w800, color: Colors.white)),
-          const SizedBox(height: 14),
-          Text("Experienced, hand-picked Professionals to serve you at your\ndoorstep", style: GoogleFonts.poppins(fontSize: isMobile ? 13.5 : 15, height: 1.45, color: Colors.white.withOpacity(.75), fontWeight: FontWeight.w400)),
-          const SizedBox(height: 22),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), boxShadow: [BoxShadow(color: Colors.black.withOpacity(.35), blurRadius: 22, offset: const Offset(0, 12))]),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: PopupMenuButton<String>(
+        onSelected: (v) {
+          if (v == 'logout') onLogout();
+        },
+        offset: const Offset(0, 50),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        color: const Color(0xFF1E1E1E),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: AppColors.primary,
+              child: Text(
+                userName.isNotEmpty ? userName[0].toUpperCase() : "U",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              userName,
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: Colors.white70,
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
+        itemBuilder: (_) => [
+          PopupMenuItem(
+            value: 'logout',
+            child: Row(
               children: [
-                Text("Where do you need a service?", style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.black)),
-                const SizedBox(height: 12),
-                InkWell(
-                  onTap: onPickCity,
-                  borderRadius: BorderRadius.circular(6),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                    decoration: BoxDecoration(border: Border.all(color: Colors.black12), borderRadius: BorderRadius.circular(6)),
-                    child: Row(
-                      children: [
-                        Expanded(child: Text(selectedCityText, style: GoogleFonts.poppins(fontSize: 13.5, fontWeight: FontWeight.w500, color: selectedCityText == "Select your city" ? Colors.black54 : Colors.black87))),
-                        const Icon(Icons.keyboard_arrow_down_rounded),
-                      ],
-                    ),
-                  ),
+                const Icon(Icons.logout, color: Colors.redAccent),
+                const SizedBox(width: 10),
+                Text(
+                  "Logout",
+                  style: GoogleFonts.poppins(color: Colors.redAccent),
                 ),
               ],
             ),
@@ -143,44 +553,34 @@ class _HeroRightContent extends StatelessWidget {
   }
 }
 
-class _UcLogo extends StatelessWidget {
-  const _UcLogo();
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(height: 42, width: 42, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)), child: const Center(child: Text("WC", style: TextStyle(fontWeight: FontWeight.w900)))),
-        const SizedBox(width: 10),
-        Text("Willko\nService", style: GoogleFonts.poppins(fontSize: 16, height: 1.0, fontWeight: FontWeight.w700, color: Colors.white)),
-      ],
-    );
-  }
-}
-
-class _HoverNavText extends StatefulWidget {
+class _GlassButton extends StatelessWidget {
   final String text;
   final VoidCallback onTap;
-  final bool underlineByDefault;
-  const _HoverNavText({required this.text, required this.onTap, this.underlineByDefault = false});
-  @override
-  State<_HoverNavText> createState() => _HoverNavTextState();
-}
+  final bool isPrimary;
+  const _GlassButton({
+    required this.text,
+    required this.onTap,
+    this.isPrimary = false,
+  });
 
-class _HoverNavTextState extends State<_HoverNavText> {
-  bool hovering = false;
   @override
   Widget build(BuildContext context) {
-    final bool showUnderline = widget.underlineByDefault || hovering;
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => hovering = true),
-      onExit: (_) => setState(() => hovering = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedDefaultTextStyle(
-          duration: const Duration(milliseconds: 140),
-          style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: hovering ? Colors.white : Colors.white.withOpacity(.92), decoration: showUnderline ? TextDecoration.underline : TextDecoration.none, decorationColor: Colors.white.withOpacity(.92)),
-          child: Text(widget.text),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+        decoration: BoxDecoration(
+          color: isPrimary ? AppColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          border: isPrimary ? null : Border.all(color: Colors.white54),
+        ),
+        child: Text(
+          text,
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );

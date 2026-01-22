@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:willko_user/app/modules/home/widgets/app_footer.dart';
 import 'home_controller.dart';
 
 // Widgets
@@ -47,8 +48,8 @@ class HomeView extends StatelessWidget {
 
             /// ================= POPULAR SERVICES (Dynamic) =================
             const SizedBox(height: 60),
-            PopularServicesSection(controller: controller),
-
+        // ✅✅ FOOTER ADDED HERE ✅✅
+            const AppFooter(),
             const SizedBox(height: 80),
           ],
         ),

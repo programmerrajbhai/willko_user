@@ -8,6 +8,7 @@ class ServiceNavbar extends StatelessWidget {
   const ServiceNavbar({super.key});
 
   @override
+
   Widget build(BuildContext context) {
     // ✅ কন্ট্রোলার খুঁজে বের করা (যাতে কার্ট ডাটা পাওয়া যায়)
     final ServiceDetailsController c = Get.find<ServiceDetailsController>();
