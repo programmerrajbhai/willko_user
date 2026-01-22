@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:willko_user/app/modules/order/order_details/order_details_view.dart'; // পাথ চেক করুন
 import '../../../../utils/app_colors.dart';
 import 'my_orders_controller.dart';
-import 'order_details/order_details_view.dart';
 
 class MyOrdersView extends StatelessWidget {
   const MyOrdersView({super.key});
@@ -13,7 +13,7 @@ class MyOrdersView extends StatelessWidget {
     final controller = Get.put(MyOrdersController());
 
     return DefaultTabController(
-      length: 2, // দুটি ট্যাব (Active, History)
+      length: 2,
       child: Scaffold(
         backgroundColor: const Color(0xFFF9F9F9),
         appBar: AppBar(
@@ -46,11 +46,18 @@ class MyOrdersView extends StatelessWidget {
           }
           return TabBarView(
             children: [
-              // Tab 1: Active Orders
-              _buildOrderList(controller.activeOrders, isHistory: false),
+              // ✅ RefreshIndicator যোগ করা হয়েছে
+              RefreshIndicator(
+                onRefresh: () async => await controller.loadOrders(),
+                color: AppColors.primary,
+                child: _buildOrderList(controller.activeOrders, isHistory: false),
+              ),
 
-              // Tab 2: History Orders
-              _buildOrderList(controller.pastOrders, isHistory: true),
+              RefreshIndicator(
+                onRefresh: () async => await controller.loadOrders(),
+                color: AppColors.primary,
+                child: _buildOrderList(controller.pastOrders, isHistory: true),
+              ),
             ],
           );
         }),
@@ -58,32 +65,41 @@ class MyOrdersView extends StatelessWidget {
     );
   }
 
-  // --- Helper Widget: Order List ---
   Widget _buildOrderList(List<Map<String, dynamic>> orders, {required bool isHistory}) {
+    // ✅ AlwaysScrollableScrollPhysics দেওয়া হয়েছে যাতে ডাটা কম থাকলেও টান দেওয়া যায়
     if (orders.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.receipt_long_rounded, size: 60, color: Colors.grey.shade300),
-            const SizedBox(height: 10),
-            Text("No orders found", style: GoogleFonts.poppins(color: Colors.grey)),
-          ],
-        ),
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(height: Get.height * 0.3),
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.receipt_long_rounded, size: 60, color: Colors.grey.shade300),
+                const SizedBox(height: 10),
+                Text("No orders found", style: GoogleFonts.poppins(color: Colors.grey)),
+              ],
+            ),
+          ),
+        ],
       );
     }
 
     return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(), // Pull-to-refresh এর জন্য জরুরি
       padding: const EdgeInsets.all(20),
       itemCount: orders.length,
       itemBuilder: (context, index) {
         var item = orders[index];
 
-        // ২. GestureDetector দিয়ে পুরো কার্ড র‍্যাপ করা হয়েছে
         return GestureDetector(
           onTap: () {
-            // কার্ডে ক্লিক করলে ডিটেইলস পেজে যাবে এবং আইডি পাস করবে
-            Get.to(() => const OrderDetailsView(), arguments: item['id']);
+            // ✅ আপডেট লজিক: ডিটেইলস পেজ থেকে ব্যাক করলে লিস্ট রিফ্রেশ হবে
+            Get.to(() => const OrderDetailsView(), arguments: item['id'])?.then((_) {
+              final controller = Get.find<MyOrdersController>();
+              controller.loadOrders();
+            });
           },
           child: Container(
             margin: const EdgeInsets.only(bottom: 15),
@@ -103,7 +119,7 @@ class MyOrdersView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. Header (Service Name & Status)
+                // Header
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -124,10 +140,12 @@ class MyOrdersView extends StatelessWidget {
                           Text(
                             item['service'],
                             style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            "Booking ID: ${item['id']}",
+                            "Booking ID: ${item['display_id']}", 
                             style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12),
                           ),
                         ],
@@ -156,7 +174,7 @@ class MyOrdersView extends StatelessWidget {
                   child: Divider(),
                 ),
 
-                // 2. Details (Date, Time, Price)
+                // Details
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -177,7 +195,7 @@ class MyOrdersView extends StatelessWidget {
                   ],
                 ),
 
-                // 3. Action Buttons (Only for Active Orders)
+                // Track Button
                 if (!isHistory) ...[
                   const SizedBox(height: 15),
                   SizedBox(
@@ -185,8 +203,10 @@ class MyOrdersView extends StatelessWidget {
                     height: 40,
                     child: OutlinedButton(
                       onPressed: () {
-                        // ৩. বাটনে ক্লিক করলেও ডিটেইলস পেজে যাবে
-                        Get.to(() => const OrderDetailsView(), arguments: item['id']);
+                         Get.to(() => const OrderDetailsView(), arguments: item['id'])?.then((_) {
+                           final controller = Get.find<MyOrdersController>();
+                           controller.loadOrders();
+                         });
                       },
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: AppColors.primary),

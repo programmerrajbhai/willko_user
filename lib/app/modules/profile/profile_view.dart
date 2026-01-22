@@ -1,30 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../utils/app_colors.dart';
+import 'package:willko_user/app/modules/order/my_orders_view.dart';
+import 'package:willko_user/utils/app_colors.dart';
 import '../booking/address/address_view.dart';
 import '../settings/settings_view.dart';
 import 'edit_profile_view.dart';
 import 'profile_controller.dart';
+import 'widgets/order_status_card.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(ProfileController());
+    // কন্ট্রোলার চেক বা ইনিশিয়ালাইজ
+    final controller = Get.isRegistered<ProfileController>() 
+        ? Get.find<ProfileController>() 
+        : Get.put(ProfileController());
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+      backgroundColor: const Color(0xFFF4F6F9), 
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-
         title: Text(
           "Profile",
           style: GoogleFonts.poppins(color: Colors.black87, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Colors.black),
+          onPressed: () => Get.back(),
+        ),
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -34,150 +42,184 @@ class ProfileView extends StatelessWidget {
         var userData = controller.user.value!;
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
           physics: const BouncingScrollPhysics(),
           child: Column(
             children: [
-              // --- 1. User Info Header ---
+              // --- 1. User Profile Card ---
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 5))],
-                ),
+                decoration: _cardDecoration(),
                 child: Row(
                   children: [
-                    // Avatar
-                    Container(
-                      height: 70,
-                      width: 70,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.primary.withOpacity(0.2), width: 2),
-                        image: const DecorationImage(
-                          image: AssetImage("assets/images/user_avatar.png"), // আপনার ইমেজ পাথ দিন
-                          fit: BoxFit.cover,
+                    Stack(
+                      children: [
+                        Container(
+                          height: 80, width: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.primary, width: 2),
+                            image: DecorationImage(
+                              image: (userData.image != null && userData.image!.isNotEmpty)
+                                  ? NetworkImage(userData.image!) as ImageProvider 
+                                  : const AssetImage("assets/images/service_man.jpg"),
+                              fit: BoxFit.cover,
+                              onError: (exception, stackTrace) {}, // Error Handler
+                            ),
+                          ),
                         ),
-                      ),
-                      // ফেইলসেফ আইকন (যদি ইমেজ না থাকে)
-                      child: const Icon(Icons.person, color: Colors.grey, size: 35),
+                        // Edit Button
+                        Positioned(
+                          bottom: 0, right: 0,
+                          child: InkWell(
+                            onTap: () => Get.to(() => const EditProfileView()),
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                              child: const Icon(Icons.edit, color: Colors.white, size: 14),
+                            ),
+                          ),
+                        )
+                      ],
                     ),
                     const SizedBox(width: 20),
-
-                    // Text Info
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Text(userData.name, style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold)),
+                          
+                          // ফোন বা ইমেইল যেটা আছে সেটা দেখাবে
                           Text(
-                            userData.name,
-                            style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold),
+                            userData.phone.isNotEmpty ? userData.phone : userData.email, 
+                            style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey[600])
                           ),
-                          const SizedBox(height: 5),
-                          Text(
-                            userData.email,
-                            style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade600),
-                          ),
-                          Text(
-                            userData.phone,
-                            style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade600),
-                          ),
+                          
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                            child: Text("Verified Member", style: GoogleFonts.poppins(fontSize: 10, color: Colors.green, fontWeight: FontWeight.bold)),
+                          )
                         ],
                       ),
-                    ),
-
-                    // Edit Icon
-                    IconButton(
-                      onPressed: () {
-                        // Edit Profile Page Link
-                        // Edit Profile Page Link
-                        Get.to(() => const EditProfileView()); // ইমপোর্ট করে নিন
-                      },
-                      icon: const Icon(Icons.edit_outlined, color: AppColors.primary),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 30),
 
-              // --- 2. Menu Options ---
+              const SizedBox(height: 24),
 
-              // Section: Account
-              _buildSectionTitle("Account Settings"),
-              _buildMenuTile(
-                icon: Icons.location_on_outlined,
-                title: "Manage Addresses",
-                onTap: () => Get.to(() => const AddressView()), // আমাদের তৈরি করা এড্রেস পেজে যাবে
-              ),
-
-
-              _buildMenuTile(
-                icon: Icons.notifications_none_rounded,
-                title: "Notifications",
-                onTap: () {},
-                trailing: Switch(
-                    value: true,
-                    onChanged: (val) {},
-                    activeColor: AppColors.primary
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Section: General
-              _buildSectionTitle("General"),
-              _buildMenuTile(
-                icon: Icons.settings_outlined,
-                title: "Settings",
-                onTap: () => Get.to(() => const SettingsView()), // এখানে লিংক করা হয়েছে
-              ),
-              _buildMenuTile(
-                icon: Icons.language_rounded,
-                title: "Language",
-                subtitle: "English (US)",
-                onTap: () {},
-              ),
-              _buildMenuTile(
-                icon: Icons.help_outline_rounded,
-                title: "Help & Support",
-                onTap: () {},
-              ),
-              _buildMenuTile(
-                icon: Icons.privacy_tip_outlined,
-                title: "Privacy Policy",
-                onTap: () {},
-              ),
-
-              const SizedBox(height: 30),
-
-              // --- 3. Logout Button ---
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.redAccent.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: ListTile(
-                  onTap: controller.logout,
-                  leading: const Icon(Icons.logout_rounded, color: Colors.redAccent),
-                  title: Text(
-                    "Logout",
-                    style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w600,
-                        color: Colors.redAccent,
-                        fontSize: 15
+              // --- 2. Order & Booking Stats (Dynamic) ---
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Get.to(() => const MyOrdersView()),
+                      child: OrderStatusCard(
+                        icon: Icons.pending_actions, 
+                        title: "Active Orders", 
+                        // ✅ ডায়নামিক কাউন্ট ব্যবহার করা হচ্ছে
+                        count: "${controller.activeOrderCount.value}", 
+                        color: Colors.orange
+                      ),
                     ),
                   ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Get.to(() => const MyOrdersView()),
+                      child: OrderStatusCard(
+                        icon: Icons.check_circle_outline, 
+                        title: "Completed", 
+                        // ✅ ডায়নামিক কাউন্ট ব্যবহার করা হচ্ছে
+                        count: "${controller.completedOrderCount.value}", 
+                        color: Colors.green
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 24),
+
+              // --- 3. Account Settings Card ---
+              _buildSectionTitle("ACCOUNT"),
+              Container(
+                decoration: _cardDecoration(),
+                child: Column(
+                  children: [
+                    _buildMenuTile(
+                      Icons.location_on_outlined, 
+                      "Manage Addresses", 
+                      () => Get.to(() => const AddressView())
+                    ),
+                    const Divider(height: 1, indent: 60),
+                    _buildMenuTile(
+                      Icons.shopping_bag_outlined, 
+                      "My Bookings", 
+                      () => Get.to(() => const MyOrdersView())
+                    ),
+                    const Divider(height: 1, indent: 60),
+                    _buildMenuTile(
+                      Icons.favorite_border, 
+                      "Saved Services", 
+                      () {}
+                    ),
+                  ],
                 ),
               ),
 
-              const SizedBox(height: 20),
-              Text(
-                "Version 1.0.0",
-                style: GoogleFonts.poppins(color: Colors.grey.shade400, fontSize: 12),
+              const SizedBox(height: 24),
+
+              // --- 4. General Settings Card ---
+              _buildSectionTitle("GENERAL"),
+              Container(
+                decoration: _cardDecoration(),
+                child: Column(
+                  children: [
+                    _buildMenuTile(
+                      Icons.settings_outlined, 
+                      "App Settings", 
+                      () => Get.to(() => const SettingsView())
+                    ),
+                    const Divider(height: 1, indent: 60),
+                    _buildMenuTile(
+                      Icons.language, 
+                      "Language", 
+                      () {}, 
+                      trailing: Text("English", style: GoogleFonts.poppins(color: Colors.grey))
+                    ),
+                    const Divider(height: 1, indent: 60),
+                    _buildMenuTile(
+                      Icons.headset_mic_outlined, 
+                      "Help & Support", 
+                      () {}
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 80), // Bottom padding for Navbar
+
+              const SizedBox(height: 30),
+
+              // --- 5. Logout Button ---
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: controller.logout,
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.redAccent.withOpacity(0.1),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text("Log Out", style: GoogleFonts.poppins(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+                ),
+              ),
+              
+              const SizedBox(height: 20),
+              Center(child: Text("App Version 1.0.0", style: GoogleFonts.poppins(color: Colors.grey[400], fontSize: 12))),
+              const SizedBox(height: 40),
             ],
           ),
         );
@@ -185,58 +227,35 @@ class ProfileView extends StatelessWidget {
     );
   }
 
-  // --- Helper Widgets ---
+  // --- Helpers ---
+  BoxDecoration _cardDecoration() {
+    return BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+    );
+  }
 
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 15, left: 5),
+      padding: const EdgeInsets.only(bottom: 12, left: 4),
       child: Align(
         alignment: Alignment.centerLeft,
-        child: Text(
-          title,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey.shade600,
-            letterSpacing: 1,
-          ),
-        ),
+        child: Text(title, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[500], letterSpacing: 1.2)),
       ),
     );
   }
 
-  Widget _buildMenuTile({
-    required IconData icon,
-    required String title,
-    String? subtitle,
-    required VoidCallback onTap,
-    Widget? trailing,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.02), blurRadius: 5)],
+  Widget _buildMenuTile(IconData icon, String title, VoidCallback onTap, {Widget? trailing}) {
+    return ListTile(
+      onTap: onTap,
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
+        child: Icon(icon, color: Colors.black87, size: 20),
       ),
-      child: ListTile(
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.08),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: AppColors.primary, size: 22),
-        ),
-        title: Text(
-          title,
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 15),
-        ),
-        subtitle: subtitle != null ? Text(subtitle, style: GoogleFonts.poppins(fontSize: 12)) : null,
-        trailing: trailing ?? const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.grey),
-      ),
+      title: Text(title, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500)),
+      trailing: trailing ?? const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
     );
   }
 }

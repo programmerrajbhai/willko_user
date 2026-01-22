@@ -7,6 +7,8 @@ import 'package:willko_user/utils/app_colors.dart';
 import '../../auth/login/login_view.dart';
 import '../../auth/signup/signup_view.dart';
 import '../../home/search/search_view.dart';
+// ✅ Profile View Import (আপনার ফোল্ডার স্ট্রাকচার অনুযায়ী পাথ চেক করুন)
+import '../../profile/profile_view.dart'; 
 
 class UrbanHeroSection extends StatelessWidget {
   final String selectedCityText;
@@ -22,9 +24,8 @@ class UrbanHeroSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final HomeController controller = Get.find<HomeController>();
     final size = MediaQuery.sizeOf(context);
-    final bool isMobile = size.width < 900; // মোবাইল ব্রেকপয়েন্ট
+    final bool isMobile = size.width < 900;
 
-    // হাইট এডজাস্টমেন্ট
     final double heroHeight = isMobile
         ? 850
         : (size.height * 0.90).clamp(650.0, 900.0);
@@ -33,32 +34,31 @@ class UrbanHeroSection extends StatelessWidget {
     return Container(
       height: heroHeight,
       width: double.infinity,
-      // ✅ 1. Background: Clean Dark Gradient (No Image Here)
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF0F0F0F), Color(0xFF1A1A1A)], // Deep Matte Black
+          colors: [Color(0xFF0F0F0F), Color(0xFF1A1A1A)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
       ),
       child: Stack(
         children: [
-          // Decorative Background Glows (Optional)
-         Positioned(
-  top: -100, right: -100,
-  child: ImageFiltered( // ✅ Container কে ImageFiltered দিয়ে র‍্যাপ করা হয়েছে
-    imageFilter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
-    child: Container(
-      height: 400, width: 400,
-      decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.15),
-        shape: BoxShape.circle,
-      ),
-    ),
-  ),
-),
+          // Glow Effect
+          Positioned(
+            top: -100, right: -100,
+            child: ImageFiltered(
+              imageFilter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
+              child: Container(
+                height: 400, width: 400,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ),
 
-          // ✅ Main Content Layer
+          // Main Content
           Padding(
             padding: EdgeInsets.symmetric(horizontal: sidePad, vertical: 30),
             child: Column(
@@ -72,8 +72,9 @@ class UrbanHeroSection extends StatelessWidget {
                   ],
                 ),
 
-                const Spacer(), // ভার্টিক্যাল স্পেস
-                // --- Split Layout: Left (Text) | Right (Image) ---
+                const Spacer(),
+                
+                // --- Split Layout ---
                 isMobile
                     ? Column(
                         children: [
@@ -89,7 +90,6 @@ class UrbanHeroSection extends StatelessWidget {
                     : Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // Left Content
                           Expanded(
                             flex: 5,
                             child: _HeroContentBox(
@@ -99,7 +99,6 @@ class UrbanHeroSection extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 40),
-                          // Right Image
                           Expanded(
                             flex: 4,
                             child: Align(
@@ -119,7 +118,6 @@ class UrbanHeroSection extends StatelessWidget {
     );
   }
 
-  // ✅ Auth Logic UI
   Widget _buildAuthSection(
     BuildContext context,
     HomeController controller,
@@ -151,7 +149,7 @@ class UrbanHeroSection extends StatelessWidget {
   }
 }
 
-// --- 🔥 HERO IMAGE DISPLAY (RIGHT SIDE) ---
+// --- 🔥 HERO IMAGE DISPLAY ---
 class _HeroImageDisplay extends StatelessWidget {
   final bool isMobile;
   const _HeroImageDisplay({required this.isMobile});
@@ -163,10 +161,9 @@ class _HeroImageDisplay extends StatelessWidget {
       width: isMobile ? double.infinity : 400,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(30),
-        // ✅ Professional Shadow & Border
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.3), // Shadow Gray
+            color: Colors.grey.withOpacity(0.3),
             blurRadius: 40,
             spreadRadius: -5,
             offset: const Offset(10, 20),
@@ -185,12 +182,10 @@ class _HeroImageDisplay extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Image
             Image.asset(
-              "assets/images/service_man.jpg", // অথবা hero_worker.jpeg
+              "assets/images/service_man.jpg",
               fit: BoxFit.cover,
             ),
-            // Gradient Overlay on Image (For Pro Look)
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -200,7 +195,6 @@ class _HeroImageDisplay extends StatelessWidget {
                 ),
               ),
             ),
-            // Optional Badge on Image
             Positioned(
               bottom: 20,
               left: 20,
@@ -209,18 +203,11 @@ class _HeroImageDisplay extends StatelessWidget {
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     color: Colors.white.withOpacity(0.2),
                     child: Row(
                       children: [
-                        const Icon(
-                          Icons.verified,
-                          color: Colors.blueAccent,
-                          size: 18,
-                        ),
+                        const Icon(Icons.verified, color: Colors.blueAccent, size: 18),
                         const SizedBox(width: 8),
                         Text(
                           "Verified Professionals",
@@ -261,7 +248,6 @@ class _HeroContentBox extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Tagline
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
@@ -272,69 +258,40 @@ class _HeroContentBox extends StatelessWidget {
           child: Text(
             "TRUSTED BY MILLIONS",
             style: GoogleFonts.montserrat(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: AppColors.primary,
-              letterSpacing: 1.5,
+              fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary, letterSpacing: 1.5,
             ),
           ),
         ),
         const SizedBox(height: 24),
-
-        // Massive Headline
         Text(
           "Home services,\nredefined.",
           style: GoogleFonts.playfairDisplay(
-            fontSize: isMobile ? 42 : 72,
-            height: 1.05,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
+            fontSize: isMobile ? 42 : 72, height: 1.05, fontWeight: FontWeight.w700, color: Colors.white,
           ),
         ),
         const SizedBox(height: 20),
-
-        // Subtitle
         Text(
           "Book trusted professionals for cleaning, repair, and grooming. Experience luxury at your doorstep.",
           style: GoogleFonts.poppins(
-            fontSize: isMobile ? 15 : 18,
-            color: Colors.grey.shade400,
-            height: 1.6,
-            fontWeight: FontWeight.w300,
+            fontSize: isMobile ? 15 : 18, color: Colors.grey.shade400, height: 1.6, fontWeight: FontWeight.w300,
           ),
         ),
         const SizedBox(height: 40),
-
-        // 🔍 Search Bar (Floating)
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withOpacity(0.15),
-                blurRadius: 40,
-                offset: const Offset(0, 10),
-              ),
+              BoxShadow(color: AppColors.primary.withOpacity(0.15), blurRadius: 40, offset: const Offset(0, 10)),
             ],
           ),
           child: isMobile
-              ? Column(
-                  children: [
-                    _buildLocationRow(),
-                    const Divider(height: 1),
-                    _buildSearchRow(),
-                  ],
-                )
+              ? Column(children: [_buildLocationRow(), const Divider(height: 1), _buildSearchRow()])
               : Row(
                   children: [
                     Expanded(flex: 2, child: _buildLocationRow()),
-                    Container(
-                      width: 1,
-                      height: 30,
-                      color: Colors.grey.shade300,
-                    ),
+                    Container(width: 1, height: 30, color: Colors.grey.shade300),
                     Expanded(flex: 3, child: _buildSearchRow()),
                     const SizedBox(width: 8),
                     _buildSearchButton(),
@@ -358,21 +315,8 @@ class _HeroContentBox extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Location",
-                    style: GoogleFonts.poppins(
-                      fontSize: 10,
-                      color: Colors.grey.shade500,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Text(
-                    selectedCityText,
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
+                  Text("Location", style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey.shade500, fontWeight: FontWeight.w500)),
+                  Text(selectedCityText, style: GoogleFonts.poppins(fontWeight: FontWeight.w600, color: Colors.black87)),
                 ],
               ),
             ),
@@ -395,21 +339,8 @@ class _HeroContentBox extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Search",
-                    style: GoogleFonts.poppins(
-                      fontSize: 10,
-                      color: Colors.grey.shade500,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Text(
-                    "AC Repair, Cleaning...",
-                    style: GoogleFonts.poppins(
-                      color: Colors.grey.shade400,
-                      fontSize: 14,
-                    ),
-                  ),
+                  Text("Search", style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey.shade500, fontWeight: FontWeight.w500)),
+                  Text("AC Repair, Cleaning...", style: GoogleFonts.poppins(color: Colors.grey.shade400, fontSize: 14)),
                 ],
               ),
             ),
@@ -421,18 +352,11 @@ class _HeroContentBox extends StatelessWidget {
 
   Widget _buildSearchButton() {
     return Container(
-      height: 48,
-      width: 48,
+      height: 48, width: 48,
       decoration: BoxDecoration(
         color: AppColors.primary,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: const Icon(Icons.search, color: Colors.white, size: 24),
     );
@@ -449,40 +373,21 @@ class _BrandLogo extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          height: 40,
-          width: 40,
+          height: 40, width: 40,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.white, Colors.grey.shade200],
-            ),
+            gradient: LinearGradient(colors: [Colors.white, Colors.grey.shade200]),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: const Center(
-            child: Text(
-              "W",
-              style: TextStyle(
-                fontWeight: FontWeight.w900,
-                fontSize: 22,
-                color: Colors.black,
-              ),
-            ),
-          ),
+          child: const Center(child: Text("W", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22, color: Colors.black))),
         ),
         const SizedBox(width: 12),
-        Text(
-          "WILLKO",
-          style: GoogleFonts.montserrat(
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-            color: Colors.white,
-            letterSpacing: 1,
-          ),
-        ),
+        Text("WILLKO", style: GoogleFonts.montserrat(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.white, letterSpacing: 1)),
       ],
     );
   }
 }
 
+// ✅ Updated Profile Menu to Navigate to ProfileView
 class _ProProfileMenu extends StatelessWidget {
   final String userName;
   final VoidCallback onLogout;
@@ -499,11 +404,16 @@ class _ProProfileMenu extends StatelessWidget {
       ),
       child: PopupMenuButton<String>(
         onSelected: (v) {
-          if (v == 'logout') onLogout();
+          if (v == 'logout') {
+            onLogout();
+          } else if (v == 'profile') {
+            // ✅ Profile Navigation Logic
+            Get.to(() => const ProfileView()); 
+          }
         },
         offset: const Offset(0, 50),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        color: const Color(0xFF1E1E1E),
+        color: const Color(0xFF1E1E1E), // Dark Theme Menu
         child: Row(
           children: [
             CircleAvatar(
@@ -511,29 +421,37 @@ class _ProProfileMenu extends StatelessWidget {
               backgroundColor: AppColors.primary,
               child: Text(
                 userName.isNotEmpty ? userName[0].toUpperCase() : "U",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
               ),
             ),
             const SizedBox(width: 10),
             Text(
               userName,
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
+              style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
             ),
             const SizedBox(width: 8),
-            const Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: Colors.white70,
-            ),
+            const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white70),
             const SizedBox(width: 8),
           ],
         ),
         itemBuilder: (_) => [
+          // ✅ My Profile Item
+          PopupMenuItem(
+            value: 'profile',
+            child: Row(
+              children: [
+                const Icon(Icons.person_outline_rounded, color: Colors.white70),
+                const SizedBox(width: 10),
+                Text(
+                  "My Profile",
+                  style: GoogleFonts.poppins(color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+          // Divider
+          const PopupMenuDivider(height: 1),
+          // Logout Item
           PopupMenuItem(
             value: 'logout',
             child: Row(
@@ -577,10 +495,7 @@ class _GlassButton extends StatelessWidget {
         ),
         child: Text(
           text,
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
+          style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
     );
