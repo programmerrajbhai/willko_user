@@ -12,48 +12,98 @@ class DynamicHeroBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final data = c.currentBannerData;
-      final color = data['color'] as Color;
-      final icon = data['icon'] as IconData;
+      final Color baseColor = data['color'] as Color;
+      final IconData icon = data['icon'] as IconData;
 
       return Container(
         width: double.infinity,
+        margin: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 0),
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
+          gradient: LinearGradient(
+            colors: [baseColor, baseColor.withOpacity(0.8)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           boxShadow: [
-            BoxShadow(color: color.withOpacity(0.4), blurRadius: 20, offset: const Offset(0, 8))
-          ]
+            BoxShadow(
+              color: baseColor.withOpacity(0.4),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
         ),
-        child: Row(
+        child: Stack(
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    data['title'],
-                    style: GoogleFonts.poppins(
-                      fontSize: isMobile ? 22 : 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  ... (data['bullets'] as List).map((b) => Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.check_circle, color: Colors.white70, size: 16),
-                        const SizedBox(width: 8),
-                        Text(b, style: GoogleFonts.poppins(color: Colors.white, fontSize: 14)),
-                      ],
-                    ),
-                  )),
-                ],
+            // Background Icon Faded
+            Positioned(
+              right: -20,
+              bottom: -20,
+              child: Icon(
+                icon,
+                size: isMobile ? 140 : 180,
+                color: Colors.white.withOpacity(0.15),
               ),
             ),
-            Icon(icon, size: isMobile ? 80 : 120, color: Colors.white.withOpacity(0.2)),
+            
+            // Content
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    "PREMIUM SERVICE",
+                    style: GoogleFonts.montserrat(
+                      fontSize: 10, 
+                      fontWeight: FontWeight.bold, 
+                      color: Colors.white, 
+                      letterSpacing: 1.5
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                // Title
+                Text(
+                  data['title'],
+                  style: GoogleFonts.poppins(
+                    fontSize: isMobile ? 26 : 36,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    height: 1.1,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                // Bullets
+                Wrap(
+                  spacing: 16,
+                  runSpacing: 8,
+                  children: (data['bullets'] as List).map((b) => Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.verified_rounded, color: Colors.greenAccent, size: 18),
+                      const SizedBox(width: 6),
+                      Text(
+                        b, 
+                        style: GoogleFonts.poppins(
+                          color: Colors.white.withOpacity(0.9), 
+                          fontSize: 13, 
+                          fontWeight: FontWeight.w500
+                        )
+                      ),
+                    ],
+                  )).toList(),
+                ),
+              ],
+            ),
           ],
         ),
       );

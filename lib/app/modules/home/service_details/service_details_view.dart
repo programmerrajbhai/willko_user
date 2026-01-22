@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:willko_user/app/modules/home/widgets/app_footer.dart';
 import '../../../../utils/app_colors.dart';
 import 'service_details_controller.dart';
 
-// Widgets Import (আপনার ফোল্ডার স্ট্রাকচার অনুযায়ী পাথ ঠিক রাখুন)
+// Widgets Import
 import 'widgets/service_navbar.dart';
 import 'widgets/hero_banner.dart';
 import 'widgets/category_selector.dart';
@@ -29,27 +30,28 @@ class ServiceDetailsView extends StatelessWidget {
     final c = Get.put(ServiceDetailsController(service: serviceArg));
 
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const ServiceNavbar(), // কাস্টম উইজেট
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  // রেস্পন্সিভ লেআউট (Desktop vs Mobile)
-                  if (constraints.maxWidth > 900) {
-                    return _DesktopLayout(c: c);
-                  } else {
-                    return _MobileLayout(c: c);
-                  }
-                },
-              ),
+      backgroundColor: const Color(0xFFF8F9FB), // Modern Soft Background
+      body: Column(
+        children: [
+          // 1. Fixed Navbar
+          const ServiceNavbar(), 
+          
+          // 2. Scrollable Content Area
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // রেস্পন্সিভ লেআউট (Desktop vs Mobile)
+                if (constraints.maxWidth > 900) {
+                  return _DesktopLayout(c: c);
+                } else {
+                  return _MobileLayout(c: c);
+                }
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-      // মোবাইল বটম কার্ট (যদি মোবাইল হয়)
+      // মোবাইল বটম কার্ট (শুধুমাত্র মোবাইলে দেখাবে)
       bottomNavigationBar: MediaQuery.of(context).size.width <= 900 
           ? MobileBottomCart(c: c) 
           : null,
@@ -58,7 +60,7 @@ class ServiceDetailsView extends StatelessWidget {
 }
 
 // ------------------------------------
-// LAYOUTS
+// 🖥️ DESKTOP LAYOUT (Web Optimized)
 // ------------------------------------
 
 class _DesktopLayout extends StatelessWidget {
@@ -67,41 +69,59 @@ class _DesktopLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1280),
-        child: Padding(
-          padding: const EdgeInsets.only(top: 20, left: 16, right: 16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(width: 300, child: LeftSidebar(c: c)),
-              const SizedBox(width: 24),
-              Expanded(
-                child: Scrollbar(
-                  thumbVisibility: true,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.only(bottom: 30),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        DynamicHeroBanner(c: c, isMobile: false),
-                        const SizedBox(height: 24),
-                        MainContentList(c: c),
-                      ],
+    return SingleChildScrollView(
+      physics: const ClampingScrollPhysics(),
+      child: Column(
+        children: [
+          // Main Content Section
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1280),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Left Sidebar (Categories & Info)
+                    SizedBox(width: 320, child: LeftSidebar(c: c)),
+                    
+                    const SizedBox(width: 32),
+                    
+                    // Middle Content (Hero & Services)
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          DynamicHeroBanner(c: c, isMobile: false),
+                          const SizedBox(height: 32),
+                          MainContentList(c: c),
+                        ],
+                      ),
                     ),
-                  ),
+                    
+                    const SizedBox(width: 32),
+                    
+                    // Right Sidebar (Cart Summary)
+                    SizedBox(width: 340, child: RightSidebar(c: c)),
+                  ],
                 ),
               ),
-              const SizedBox(width: 24),
-              SizedBox(width: 320, child: RightSidebar(c: c)),
-            ],
+            ),
           ),
-        ),
+
+          const SizedBox(height: 60),
+
+          // ✅ Full Width Footer
+          const AppFooter(),
+        ],
       ),
     );
   }
 }
+
+// ------------------------------------
+// 📱 MOBILE LAYOUT (App Optimized)
+// ------------------------------------
 
 class _MobileLayout extends StatelessWidget {
   final ServiceDetailsController c;
@@ -110,22 +130,27 @@ class _MobileLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.only(bottom: 20),
+      physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Banner
           DynamicHeroBanner(c: c, isMobile: true),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
-          // Category Selector (Tabs)
+          // Category Selector (Sticky Header Style)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Select a service",
-                  style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textBlack),
+                  "Browse by Category",
+                  style: GoogleFonts.poppins(
+                    fontSize: 16, 
+                    fontWeight: FontWeight.bold, 
+                    color: Colors.black87
+                  ),
                 ),
                 const SizedBox(height: 12),
                 MobileCategorySelector(c: c),
@@ -141,9 +166,10 @@ class _MobileLayout extends StatelessWidget {
             child: MainContentList(c: c),
           ),
 
-          const SizedBox(height: 30),
+          const SizedBox(height: 40),
           
-          
+          // ✅ Mobile Footer
+          const AppFooter(),
         ],
       ),
     );
