@@ -1,72 +1,70 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:willko_user/app/data/services/api_service.dart';
 import '../../home/home_view.dart';
 import '../forgot_password/forgot_password_view.dart';
 import '../signup/signup_view.dart';
-// import '../signup/signup_view.dart'; // সাইন আপ পেজ বানানোর পর খুলবে
-// import '../home/home_view.dart';     // হোম পেজ বানানোর পর খুলবে
 
 class LoginController extends GetxController {
-  // UI State Variables
   var isLoading = false.obs;
   var isPasswordHidden = true.obs;
 
-  // Input Controllers
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
 
-  // Password Visibility Toggle
   void togglePasswordVisibility() {
     isPasswordHidden.value = !isPasswordHidden.value;
   }
 
-  // Login Function (Dummy Logic)
+  // ✅ Login Function
   void login() async {
     String phone = phoneController.text.trim();
     String password = passwordController.text.trim();
 
     if (phone.isEmpty || password.isEmpty) {
-      Get.snackbar(
-        "Error",
-        "Please enter phone and password",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
+      Get.snackbar("Error", "Please enter phone and password", backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
       return;
     }
 
-    // লোডিং শুরু
     isLoading.value = true;
 
-    // ২ সেকেন্ড ফেক লোডিং (API কল সিমুলেশন)
-    await Future.delayed(const Duration(seconds: 2));
+    // 1. Call API
+    var response = await ApiService.login(phone, password);
 
     isLoading.value = false;
 
-    // সফল হলে যা হবে (কনসোলে প্রিন্ট)
-    print("Login Success! Phone: $phone");
-    Get.snackbar(
-      "Success",
-      "Login Successful",
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-    );
+    if (response['status'] == 'success') {
+      // 2. Save Data to Shared Preferences
+      final data = response['data'];
+      final prefs = await SharedPreferences.getInstance();
+      
+      await prefs.setString('auth_token', data['token']);
+      await prefs.setString('user_id', data['user_id'].toString());
+      await prefs.setString('user_name', data['name']);
+      await prefs.setString('user_phone', data['phone']);
+      await prefs.setString('user_email', data['email']);
+      
+      Get.snackbar("Success", "Login Successful!", backgroundColor: Colors.green, colorText: Colors.white);
 
-    // TODO: হোম স্ক্রিনে নেভিগেট করতে হবে
-  Get.offAll(() => const HomeView());
+      // 3. Smart Navigation Logic (UPDATED)
+      if (Get.arguments != null && Get.arguments['fromCheckout'] == true) {
+        // ✅ চেকআউট পেজে জানিয়ে দিচ্ছি যে লগইন সফল হয়েছে
+        Get.back(result: true); 
+      } else {
+        Get.offAll(() => const HomeView());
+      }
+
+    } else {
+      Get.snackbar("Login Failed", response['message'] ?? "Unknown Error", backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
+    }
   }
 
-  // Go to Sign Up Page
   void goToSignUp() {
-   Get.to(() => const SignUpView());
-    print("Go to Sign Up");
+    Get.to(() => const SignUpView());
   }
 
-  // Go to Forgot Password
   void goToForgotPassword() {
-    print("Go to Forgot Password");
     Get.to(() => const ForgotPasswordView());
   }
 }

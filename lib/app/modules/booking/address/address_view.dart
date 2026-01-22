@@ -9,6 +9,7 @@ class AddressView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // কন্ট্রোলার নিশ্চিত করা
     final controller = Get.put(AddressController());
 
     return Scaffold(
@@ -22,11 +23,7 @@ class AddressView extends StatelessWidget {
         ),
         title: Text(
           "Select Address",
-          style: GoogleFonts.manrope(
-            color: Colors.black87, 
-            fontWeight: FontWeight.w800, 
-            fontSize: 17
-          ),
+          style: GoogleFonts.manrope(color: Colors.black87, fontWeight: FontWeight.w800, fontSize: 17),
         ),
         centerTitle: true,
       ),
@@ -34,6 +31,7 @@ class AddressView extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
           child: Obx(() {
+            // লোডিং স্টেট
             if (controller.isLoading.value) {
               return const Center(child: CircularProgressIndicator(color: AppColors.primary));
             }
@@ -110,7 +108,7 @@ class AddressView extends StatelessWidget {
                                   child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      // Icon
+                                      // Icon Box
                                       Container(
                                         padding: const EdgeInsets.all(10),
                                         decoration: BoxDecoration(
@@ -125,7 +123,7 @@ class AddressView extends StatelessWidget {
                                       ),
                                       const SizedBox(width: 15),
                                       
-                                      // Details
+                                      // Address Info
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,12 +148,14 @@ class AddressView extends StatelessWidget {
                                                 else
                                                   InkWell(
                                                     onTap: () => controller.deleteAddress(index),
-                                                    child: Icon(Icons.delete_outline_rounded, color: Colors.redAccent.withOpacity(0.7), size: 20),
+                                                    child: Padding(
+                                                      padding: const EdgeInsets.all(4.0),
+                                                      child: Icon(Icons.delete_outline_rounded, color: Colors.redAccent.withOpacity(0.7), size: 20),
+                                                    ),
                                                   )
                                               ],
                                             ),
                                             const SizedBox(height: 6),
-                                            // ✅ Fix: Use addressLine instead of address
                                             Text(
                                               item.addressLine, 
                                               style: GoogleFonts.manrope(color: Colors.grey.shade600, fontSize: 13, height: 1.4),

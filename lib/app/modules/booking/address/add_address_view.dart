@@ -9,11 +9,6 @@ class AddAddressView extends GetView<AddressController> {
 
   @override
   Widget build(BuildContext context) {
-    // কন্ট্রোলার চেক করা হচ্ছে
-    if (!Get.isRegistered<AddressController>()) {
-      Get.put(AddressController());
-    }
-
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FD),
       appBar: AppBar(
@@ -47,7 +42,7 @@ class AddAddressView extends GetView<AddressController> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // --- 1. GPS Button ---
+                        // --- GPS Button ---
                         GestureDetector(
                           onTap: () => controller.useCurrentLocation(),
                           child: Container(
@@ -73,7 +68,7 @@ class AddAddressView extends GetView<AddressController> {
                         const SizedBox(height: 25),
                         _sectionTitle("CONTACT INFO"),
                         
-                        // --- 2. Contact Details Form ---
+                        // --- Contact Details ---
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: _cardDecoration(),
@@ -102,13 +97,12 @@ class AddAddressView extends GetView<AddressController> {
                         const SizedBox(height: 25),
                         _sectionTitle("ADDRESS DETAILS"),
 
-                        // --- 3. Address Details Form ---
+                        // --- Address Details ---
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: _cardDecoration(),
                           child: Column(
                             children: [
-                              // Location Name
                               _AnimatedTextField(
                                 controller: controller.locationNameController,
                                 label: "Location Name / Area",
@@ -118,8 +112,6 @@ class AddAddressView extends GetView<AddressController> {
                                 validator: (v) => (v == null || v.isEmpty) ? "Location is required" : null,
                               ),
                               const SizedBox(height: 16),
-                              
-                              // Building & Flat
                               Row(
                                 children: [
                                   Expanded(
@@ -150,7 +142,7 @@ class AddAddressView extends GetView<AddressController> {
                         const SizedBox(height: 25),
                         _sectionTitle("SAVE AS"),
                         
-                        // --- 4. Type Selector ---
+                        // --- Type Selector ---
                         Row(
                           children: [
                             _typeButton("Home", Icons.home_rounded),
@@ -160,7 +152,6 @@ class AddAddressView extends GetView<AddressController> {
                             _typeButton("Other", Icons.location_on_rounded),
                           ],
                         ),
-
                         const SizedBox(height: 40),
                       ],
                     ),

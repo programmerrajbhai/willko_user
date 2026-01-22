@@ -173,9 +173,25 @@ class ServiceDetailsController extends GetxController {
     showModalBottomSheet(context: context, isScrollControlled: true, backgroundColor: Colors.transparent, builder: (_) => DraggableScrollableSheet(initialChildSize: 0.85, builder: (_, c) => CartBottomSheet(scrollController: c)));
   }
 
-  void checkout() {
-    Get.back();
-    if (cartItems.isEmpty) return;
-    Get.to(() => const CheckoutView(), binding: BindingsBuilder(() => Get.put(CheckoutController())));
+ // lib/app/modules/home/service_details/service_details_controller.dart এর ভেতরে
+
+void checkout() {
+  Get.back(); // Close bottom sheet
+  if (cartItems.isEmpty) {
+     Get.snackbar("Empty Cart", "Please select a service first.");
+     return;
   }
+  
+  // ✅ কার্ট আইটেমগুলো লিস্ট আকারে পাঠানো হচ্ছে
+  Get.to(
+    () => const CheckoutView(),
+    arguments: {
+      'cart': cartItems.values.toList(), // কার্ট লিস্ট পাঠানো হলো
+    },
+    binding: BindingsBuilder(() { Get.put(CheckoutController()); }),
+    transition: Transition.cupertino,
+  );
+}
+
+
 }
