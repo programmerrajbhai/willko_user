@@ -186,13 +186,6 @@ class ProfileView extends StatelessWidget {
                     ),
                     const Divider(height: 1, indent: 60),
                     _buildMenuTile(
-                      Icons.language, 
-                      "Language", 
-                      () {}, 
-                      trailing: Text("English", style: GoogleFonts.poppins(color: Colors.grey))
-                    ),
-                    const Divider(height: 1, indent: 60),
-                    _buildMenuTile(
                       Icons.headset_mic_outlined, 
                       "Help & Support", 
                       () {}

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:willko_user/app/data/services/api_service.dart';
+import 'package:willko_user/app/modules/order/my_orders_controller.dart';
 
 class OrderDetailsController extends GetxController {
   var orderDetails = {}.obs;
@@ -12,13 +13,13 @@ class OrderDetailsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // আর্গুমেন্ট থেকে অর্ডার আইডি নেওয়া
     var args = Get.arguments;
     if (args != null) {
       fetchOrderDetails(args.toString());
     } else {
       Get.snackbar("Error", "Invalid Order ID");
-      isLoading.value = false;
+      isLoading.value = false; // Fix: Stop loading
+      Get.back();
     }
   }
 
@@ -32,14 +33,12 @@ class OrderDetailsController extends GetxController {
       var info = data['order_info'];
       var price = data['price_details'];
       var address = data['address'];
-      var provider = data['provider']; // এটি null হতে পারে
+      var provider = data['provider']; 
       var items = data['items'] as List;
 
-      // --- ডাটা ম্যাপ করা ---
       orderDetails.value = {
         "id": "#ORD-${info['id'].toString().padLeft(4, '0')}", 
-        "real_id": info['id'], 
-        // একাধিক সার্ভিস থাকলে প্রথমটা + more দেখাবে
+        "real_id": info['id'], // ✅ API এর জন্য রিয়েল আইডি
         "service_name": items.isNotEmpty 
             ? "${items[0]['service_name']}${items.length > 1 ? ' & ${items.length - 1} more' : ''}" 
             : "Service",
@@ -49,7 +48,6 @@ class OrderDetailsController extends GetxController {
         "address": address['details'] ?? "Address not found",
         "payment_method": info['payment_method'].toString().toUpperCase(),
         "price": "SAR ${price['final_total']}",
-        // প্রোভাইডার হ্যান্ডলিং
         "provider": provider != null ? {
           "name": provider['name'],
           "phone": provider['phone'],
@@ -57,7 +55,6 @@ class OrderDetailsController extends GetxController {
           "image": provider['image'] ?? "", 
           "jobs_done": "Verified" 
         } : null,
-        // টাইমলাইন জেনারেশন
         "timeline": _generateTimeline(info['status'], info['schedule_time'])
       };
 
@@ -68,12 +65,10 @@ class OrderDetailsController extends GetxController {
     isLoading.value = false;
   }
 
-  // --- Helper: Generate Timeline based on Status ---
+  // --- Helper: Generate Timeline ---
   List<Map<String, dynamic>> _generateTimeline(String status, String time) {
     status = status.toLowerCase();
-    
-    // Status Logic
-    bool isPlaced = true; // প্লেসড সবসময় সত্য
+    bool isPlaced = true;
     bool isAssigned = ['assigned', 'on_way', 'started', 'completed'].contains(status);
     bool isStarted = ['started', 'completed'].contains(status);
     bool isCompleted = status == 'completed';
@@ -86,7 +81,6 @@ class OrderDetailsController extends GetxController {
     ];
   }
 
-  // --- Helper: Capitalize String ---
   String _capitalize(String s) => s.isNotEmpty ? s[0].toUpperCase() + s.substring(1) : "";
 
   // --- Call Provider ---
@@ -99,7 +93,38 @@ class OrderDetailsController extends GetxController {
     }
   }
 
-  // --- Cancel Order Logic ---
+
+  void _processCancellation() async {
+    Get.back(); // ডায়ালগ বন্ধ
+    isLoading.value = true;
+    
+    // ✅ রিয়েল আইডি পাঠানো হচ্ছে (Display ID #ORD-xxx না)
+    String realId = orderDetails['real_id'].toString();
+    String reason = cancelReasonController.text.isEmpty ? "Changed my mind" : cancelReasonController.text;
+
+    var response = await ApiService.cancelOrder(realId, reason);
+
+    if (response['status'] == 'success') {
+      // ✅ লোকাল UI আপডেট
+      var updatedData = Map<String, dynamic>.from(orderDetails);
+      updatedData['status'] = "Cancelled";
+      orderDetails.value = updatedData;
+      
+      Get.snackbar("Success", "Booking cancelled successfully", 
+          backgroundColor: Colors.green, colorText: Colors.white);
+      
+      // ✅ অর্ডার লিস্ট রিফ্রেশ করার জন্য কন্ট্রোলার আপডেট
+      if (Get.isRegistered<MyOrdersController>()) {
+        Get.find<MyOrdersController>().loadOrders();
+      }
+    } else {
+      Get.snackbar("Failed", response['message'] ?? "Could not cancel order", 
+          backgroundColor: Colors.redAccent, colorText: Colors.white);
+    }
+
+    isLoading.value = false;
+  }
+  // --- Cancel Order Dialog ---
   void cancelOrder() {
     cancelReasonController.clear();
     Get.defaultDialog(
@@ -134,19 +159,4 @@ class OrderDetailsController extends GetxController {
     );
   }
 
-  void _processCancellation() async {
-    Get.back(); 
-    isLoading.value = true;
-    
-    // TODO: এখানে ভবিষ্যতে রিয়েল API কল বসবে
-    await Future.delayed(const Duration(seconds: 1)); 
-
-    // লোকাল আপডেট (UI তে চেঞ্জ দেখানোর জন্য)
-    var updatedData = Map<String, dynamic>.from(orderDetails);
-    updatedData['status'] = "Cancelled";
-    orderDetails.value = updatedData;
-
-    isLoading.value = false;
-    Get.snackbar("Cancelled", "Order cancelled successfully.", backgroundColor: Colors.redAccent, colorText: Colors.white);
-  }
 }

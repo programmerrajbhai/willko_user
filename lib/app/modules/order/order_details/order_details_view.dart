@@ -25,12 +25,10 @@ class OrderDetailsView extends StatelessWidget {
         centerTitle: true,
       ),
       body: Obx(() {
-        // ১. লোডিং স্টেট
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator(color: AppColors.primary));
         }
 
-        // ২. এরর বা ডাটা না থাকলে (Red Screen Fix)
         if (controller.orderDetails.isEmpty) {
           return Center(
             child: Column(
@@ -48,13 +46,12 @@ class OrderDetailsView extends StatelessWidget {
           );
         }
 
-        // ৩. মেইন ডাটা
         var data = controller.orderDetails;
-        var provider = data['provider']; // Nullable Check
+        var provider = data['provider'];
         String status = data['status'];
         bool isCancelled = status == "Cancelled";
         bool isCompleted = status == "Completed";
-        bool isActive = !isCancelled && !isCompleted;
+        bool isActive = !isCancelled && !isCompleted && status != "Completed"; // Extra check
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -62,18 +59,15 @@ class OrderDetailsView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- 1. Status Banner ---
               _buildStatusBanner(status, data['id'], isCancelled, isCompleted),
               const SizedBox(height: 25),
 
-              // --- 2. Service Provider Card (যদি থাকে) ---
               if (provider != null) 
                 _buildProviderCard(provider, isCancelled, controller),
               
               if (provider != null) 
                 const SizedBox(height: 25),
 
-              // --- 3. Timeline ---
               if (!isCancelled) ...[
                 Text("Track Status", style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 15),
@@ -81,14 +75,12 @@ class OrderDetailsView extends StatelessWidget {
                 const SizedBox(height: 25),
               ],
 
-              // --- 4. Booking Info ---
               Text("Booking Details", style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 15),
               _buildInfoCard(data),
 
               const SizedBox(height: 40),
 
-              // --- 5. Buttons ---
               if (isActive)
                 SizedBox(
                   width: double.infinity, height: 50,
@@ -123,7 +115,6 @@ class OrderDetailsView extends StatelessWidget {
   }
 
   // --- Widgets ---
-
   Widget _buildStatusBanner(String status, String id, bool isCancelled, bool isCompleted) {
     Color color = isCancelled ? Colors.red : (isCompleted ? Colors.green : AppColors.primary);
     IconData icon = isCancelled ? Icons.cancel : (isCompleted ? Icons.check_circle : Icons.hourglass_top_rounded);
