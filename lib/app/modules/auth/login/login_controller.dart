@@ -17,13 +17,21 @@ class LoginController extends GetxController {
     isPasswordHidden.value = !isPasswordHidden.value;
   }
 
-  // ✅ Login Function
+  // ✅ Login Function (Simplified)
   void login() async {
     String phone = phoneController.text.trim();
     String password = passwordController.text.trim();
 
+    // Validation
     if (phone.isEmpty || password.isEmpty) {
-      Get.snackbar("Error", "Please enter phone and password", backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        "Required", 
+        "Please enter both phone and password", 
+        backgroundColor: Colors.redAccent, 
+        colorText: Colors.white, 
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+      );
       return;
     }
 
@@ -35,7 +43,7 @@ class LoginController extends GetxController {
     isLoading.value = false;
 
     if (response['status'] == 'success') {
-      // 2. Save Data to Shared Preferences
+      // 2. Save Session Data securely
       final data = response['data'];
       final prefs = await SharedPreferences.getInstance();
       
@@ -43,20 +51,29 @@ class LoginController extends GetxController {
       await prefs.setString('user_id', data['user_id'].toString());
       await prefs.setString('user_name', data['name']);
       await prefs.setString('user_phone', data['phone']);
-      await prefs.setString('user_email', data['email']);
+      if(data['email'] != null) await prefs.setString('user_email', data['email']);
       
-      Get.snackbar("Success", "Login Successful!", backgroundColor: Colors.green, colorText: Colors.white);
+      Get.snackbar(
+        "Welcome Back!", 
+        "Login Successful", 
+        backgroundColor: Colors.green, 
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+      );
 
-      // 3. Smart Navigation Logic (UPDATED)
-      if (Get.arguments != null && Get.arguments['fromCheckout'] == true) {
-        // ✅ চেকআউট পেজে জানিয়ে দিচ্ছি যে লগইন সফল হয়েছে
-        Get.back(result: true); 
-      } else {
-        Get.offAll(() => const HomeView());
-      }
+      // ✅ 3. Navigate to Home Screen directly (Clear previous stack)
+      Get.offAll(() => const HomeView());
 
     } else {
-      Get.snackbar("Login Failed", response['message'] ?? "Unknown Error", backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        "Login Failed", 
+        response['message'] ?? "Invalid credentials", 
+        backgroundColor: Colors.redAccent, 
+        colorText: Colors.white, 
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+      );
     }
   }
 

@@ -9,6 +9,7 @@ class LoginView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Put or Find Controller
     final controller = Get.put(LoginController());
 
     return Scaffold(
@@ -20,48 +21,26 @@ class LoginView extends StatelessWidget {
           children: [
             const SizedBox(height: 80),
 
-            // Header Image/Icon
+            // Header Icon
             Center(
               child: Container(
-                padding: const EdgeInsets.all(15),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.lock_person_rounded,
-                  size: 50,
-                  color: AppColors.primary,
-                ),
+                child: const Icon(Icons.lock_person_rounded, size: 50, color: AppColors.primary),
               ),
             ),
             const SizedBox(height: 30),
 
             // Welcome Text
-            Text(
-              "Welcome Back!",
-              style: GoogleFonts.poppins(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textBlack,
-              ),
-            ),
-            Text(
-              "Sign in to continue",
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                color: AppColors.textGrey,
-              ),
-            ),
+            Text("Welcome Back!", style: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.textBlack)),
+            Text("Sign in to continue", style: GoogleFonts.poppins(fontSize: 16, color: AppColors.textGrey)),
             const SizedBox(height: 40),
 
             // Phone Field
-            _buildTextField(
-              controller: controller.phoneController,
-              label: "Phone Number",
-              icon: Icons.phone_android_rounded,
-              inputType: TextInputType.phone,
-            ),
+            _buildTextField(controller: controller.phoneController, label: "Phone Number", icon: Icons.phone_android_rounded, inputType: TextInputType.phone),
             const SizedBox(height: 20),
 
             // Password Field
@@ -72,24 +51,12 @@ class LoginView extends StatelessWidget {
                 labelText: "Password",
                 prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppColors.primary),
                 suffixIcon: IconButton(
-                  icon: Icon(
-                    controller.isPasswordHidden.value ? Icons.visibility_off : Icons.visibility,
-                    color: Colors.grey,
-                  ),
+                  icon: Icon(controller.isPasswordHidden.value ? Icons.visibility_off : Icons.visibility, color: Colors.grey),
                   onPressed: controller.togglePasswordVisibility,
                 ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.inputBorder),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.inputBorder),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.primary, width: 2),
-                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.inputBorder)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.inputBorder)),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
               ),
             )),
 
@@ -98,13 +65,7 @@ class LoginView extends StatelessWidget {
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: controller.goToForgotPassword,
-                child: Text(
-                  "Forgot Password?",
-                  style: GoogleFonts.poppins(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: Text("Forgot Password?", style: GoogleFonts.poppins(color: AppColors.primary, fontWeight: FontWeight.w600)),
               ),
             ),
             const SizedBox(height: 20),
@@ -117,76 +78,44 @@ class LoginView extends StatelessWidget {
                 onPressed: controller.isLoading.value ? null : controller.login,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   elevation: 2,
                 ),
                 child: controller.isLoading.value
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : Text(
-                  "LOGIN",
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
+                    ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : Text("LOGIN", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
               )),
             ),
             const SizedBox(height: 30),
 
-            // Don't have account? Sign Up
+            // Sign Up Link
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  "Don't have an account? ",
-                  style: GoogleFonts.poppins(color: AppColors.textGrey),
-                ),
+                Text("Don't have an account? ", style: GoogleFonts.poppins(color: AppColors.textGrey)),
                 GestureDetector(
                   onTap: controller.goToSignUp,
-                  child: Text(
-                    "Sign Up",
-                    style: GoogleFonts.poppins(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: Text("Sign Up", style: GoogleFonts.poppins(color: AppColors.primary, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
+            const SizedBox(height: 30),
           ],
         ),
       ),
     );
   }
 
-  // Helper Widget for TextField
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    TextInputType inputType = TextInputType.text,
-  }) {
+  Widget _buildTextField({required TextEditingController controller, required String label, required IconData icon, TextInputType inputType = TextInputType.text}) {
     return TextField(
       controller: controller,
       keyboardType: inputType,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: AppColors.primary),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.inputBorder),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.inputBorder),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.inputBorder)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.inputBorder)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
       ),
     );
   }
