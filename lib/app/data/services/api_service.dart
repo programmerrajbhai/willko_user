@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ApiService {
   // ================= CONFIGURATION =================
   // ⚠️ আপনার পিসির বর্তমান IPv4 Address এখানে বসান
-  static const String _ip = "192.168.1.105"; 
+  static const String _ip = "192.168.1.101";
   static const String _root = "http://$_ip/WillkoServiceApi/api";
 
   // ================= ENDPOINTS =================
@@ -23,6 +23,35 @@ static const String _getOrderDetailsUrl = "$_root/user/order/order_details.php";
 
 
 static const String _cancelOrderUrl = "$_root/user/order/cancel_order.php";
+
+
+
+
+// ================= ENDPOINTS ================= এ এটি যুক্ত করুন
+  static const String _registerUrl = "$_root/user/auth/register.php";
+
+  // ================= REGISTER API =================
+  static Future<Map<String, dynamic>> registerUser(String name, String phone, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse(_registerUrl),
+        body: jsonEncode({
+          "name": name,
+          "phone": phone,
+          "password": password
+        }),
+        headers: {"Content-Type": "application/json"},
+      ).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return {"status": "error", "message": "Server Error: ${response.statusCode}"};
+      }
+    } catch (e) {
+      return {"status": "error", "message": "Connection Error: $e"};
+    }
+  }
 
   // ================= 7. CANCEL ORDER =================
   static Future<Map<String, dynamic>> cancelOrder(String orderId, String reason) async {
