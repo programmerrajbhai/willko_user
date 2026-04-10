@@ -5,8 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ApiService {
   // ================= CONFIGURATION =================
   // ⚠️ আপনার পিসির বর্তমান IPv4 Address এখানে বসান
-  static const String _ip = "192.168.1.101";
-  static const String _root = "http://$_ip/WillkoServiceApi/api";
+  static const String _ip = "willkoservices.com";
+  static const String _root = "https://$_ip/WillkoServiceApi/api";
 
   // ================= ENDPOINTS =================
   static const String baseUrl = _root;
