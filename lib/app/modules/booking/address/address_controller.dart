@@ -28,6 +28,7 @@ class AddressController extends GetxController {
   final selectedType = "Home".obs;
 
   GoogleMapController? mapController;
+  // ডিফল্ট লোকেশন (ঢাকা)
   var currentPosition = const LatLng(23.8103, 90.4125).obs;
 
   @override
@@ -42,7 +43,10 @@ class AddressController extends GetxController {
     loadAddresses(); // অ্যাপ ওপেন হলেই ক্যাশ থেকে অ্যাড্রেস লোড হবে
   }
 
-  // ✅ Cash Memory (SharedPreferences) থেকে ডাটা রিড
+  // ==========================================
+  // 🚀 SHARED PREFERENCES LOGIC (Data Save/Load)
+  // ==========================================
+
   Future<void> loadAddresses() async {
     isLoading.value = true;
     try {
@@ -62,14 +66,16 @@ class AddressController extends GetxController {
     }
   }
 
-  // ✅ Cash Memory (SharedPreferences) তে ডাটা সেভ
   Future<void> _saveToPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     String jsonString = jsonEncode(addressList.map((e) => e.toJson()).toList());
     await prefs.setString('saved_addresses', jsonString);
   }
 
-  // --- Map Logic ---
+  // ==========================================
+  // 🚀 GOOGLE MAPS & FULL ADDRESS LOGIC
+  // ==========================================
+
   void onMapCreated(GoogleMapController controller) {
     mapController = controller;
   }
@@ -120,20 +126,85 @@ class AddressController extends GetxController {
     }
   }
 
+  // 🔥 100% PERFECT FILTERED FULL ADDRESS GETTER 🔥
   Future<void> _getAddressFromLatLng(LatLng pos) async {
     try {
       List<Placemark> placemarks = await placemarkFromCoordinates(pos.latitude, pos.longitude);
+
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks[0];
-        String address = "${place.street}, ${place.subLocality}, ${place.locality}";
-        locationNameController.text = address.replaceAll(RegExp(r', ,|, $|^, '), '').trim();
+        List<String> addressParts = [];
+
+        // ✅ Helper Function: হাবিজাবি কোড এবং Unnamed Road ফিল্টার করার জন্য
+        bool isValid(String? text) {
+          if (text == null || text.trim().isEmpty) return false;
+          // Plus Code (যেমন: 7VFH+GHP) ব্লক করা
+          if (text.contains('+') && !text.contains(' ')) return false;
+          // "Unnamed Road" ব্লক করা
+          if (text.toLowerCase().contains('unnamed road')) return false;
+          return true;
+        }
+
+        // ১. রাস্তার নাম (Thoroughfare)
+        if (isValid(place.thoroughfare)) {
+          addressParts.add(place.thoroughfare!);
+        }
+
+        // ২. এলাকার নাম (Sub Locality) - যেমন: Banani, Mirpur
+        if (isValid(place.subLocality)) {
+          addressParts.add(place.subLocality!);
+        }
+
+        // ৩. শহরের নাম (Locality) - যেমন: Dhaka
+        if (isValid(place.locality)) {
+          addressParts.add(place.locality!);
+        }
+
+        // ৪. জেলার নাম (Sub Administrative Area)
+        if (isValid(place.subAdministrativeArea) && !addressParts.contains(place.subAdministrativeArea)) {
+          addressParts.add(place.subAdministrativeArea!);
+        }
+
+        // ৫. বিল্ডিং বা জায়গার নাম (যদি রাস্তা বা এলাকার নামের সাথে না মিলে)
+        if (isValid(place.name) &&
+            !addressParts.contains(place.name) &&
+            place.name != place.street) {
+          addressParts.insert(0, place.name!); // এটি স্পেসিফিক নাম তাই প্রথমে রাখবো
+        }
+
+        // ৬. বিভাগ (Administrative Area)
+        if (isValid(place.administrativeArea) && !addressParts.contains(place.administrativeArea)) {
+          addressParts.add(place.administrativeArea!);
+        }
+
+        // ৭. পোস্টাল কোড (Optional: রাখতে চাইলে আনকমেন্ট করতে পারেন)
+        // if (isValid(place.postalCode)) addressParts.add(place.postalCode!);
+
+        // ৮. দেশ (Country)
+        if (isValid(place.country)) {
+          addressParts.add(place.country!);
+        }
+
+        // ডুপ্লিকেট শব্দগুলো রিমুভ করে কমা দিয়ে সাজানো
+        String fullAddress = addressParts.toSet().join(', ');
+
+        // যদি কোনো কারণে সবকিছু ফিল্টার হয়ে খালি হয়ে যায়, তবে কোঅর্ডিনেট দেখাবে না, বরং 'Unknown Location' দেখাবে
+        if (fullAddress.trim().isEmpty) {
+          fullAddress = "Selected Location";
+        }
+
+        // টেক্সট ফিল্ডে সেট করা
+        locationNameController.text = fullAddress;
       }
     } catch (e) {
       debugPrint("Address fetch error: $e");
     }
   }
 
-  // --- CRUD Actions ---
+  // ==========================================
+  // 🚀 FORM ACTIONS (Save, Delete, Select)
+  // ==========================================
+
   Future<void> saveAddress() async {
     HapticFeedback.lightImpact();
 
@@ -166,7 +237,7 @@ class AddressController extends GetxController {
     }
 
     addressList.insert(0, newAddress);
-    await _saveToPrefs(); // সেভ টু ক্যাশ
+    await _saveToPrefs();
 
     isSaving.value = false;
     Get.back();
@@ -213,7 +284,7 @@ class AddressController extends GetxController {
       Get.snackbar("Select Address", "Please select a delivery address.");
       return;
     }
-    Get.back(result: selected); // রিটার্ন ভ্যালুসহ ব্যাক করবে
+    Get.back(result: selected);
   }
 
   void goToAddAddress() {
