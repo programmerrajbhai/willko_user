@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:willko_user/utils/app_colors.dart';
 
 class AppFooter extends StatelessWidget {
   const AppFooter({super.key});
@@ -23,29 +22,35 @@ class AppFooter extends StatelessWidget {
                 const _FooterBrand(),
                 const SizedBox(height: 30),
 
-                // 2. Links Section (Grid Layout)
+                // 2. Links Section (Play Store Essentials)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: _FooterLinkColumn(
                         title: "Company",
-                        links: const ["About Us", "Terms & Conditions", "Privacy Policy", "Anti-discrimination Policy", "Careers"],
+                        links: [
+                          _LinkItem("About Us", () => Get.to(() => const CustomPageView(title: "About Us"))),
+                          _LinkItem("Contact Us", () => Get.to(() => const CustomPageView(title: "Contact Us"))),
+                        ],
                       ),
                     ),
                     const SizedBox(width: 20),
                     Expanded(
                       child: _FooterLinkColumn(
-                        title: "For Customers",
-                        links: const ["UC Reviews", "Categories", "Blog", "Contact Us", "Help Center"],
+                        title: "Legal",
+                        links: [
+                          _LinkItem("Privacy Policy", () => Get.to(() => const CustomPageView(title: "Privacy Policy"))),
+                          _LinkItem("Terms & Conditions", () => Get.to(() => const CustomPageView(title: "Terms & Conditions"))),
+                        ],
                       ),
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 30),
-                
-                // 3. Social Media & Apps
+
+                // 3. Social Media
                 const Text(
                   "Follow Us",
                   style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
@@ -53,10 +58,9 @@ class AppFooter extends StatelessWidget {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    _SocialIcon(icon: Icons.facebook),
-                    _SocialIcon(icon: Icons.camera_alt_outlined), // Instagram alternative
-                    _SocialIcon(icon: Icons.alternate_email), // Twitter alternative
-                    _SocialIcon(icon: Icons.video_library_rounded), // YouTube alternative
+                    _SocialIcon(icon: Icons.facebook, onTap: () => _showToast("Facebook")),
+                    _SocialIcon(icon: Icons.camera_alt_outlined, onTap: () => _showToast("Instagram")),
+                    _SocialIcon(icon: Icons.video_library_rounded, onTap: () => _showToast("YouTube")),
                   ],
                 ),
               ],
@@ -74,7 +78,7 @@ class AppFooter extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  "© 2026 Willko Technologies India Pvt. Ltd.",
+                  "© 2026 Willko Service. All rights reserved.",
                   style: GoogleFonts.poppins(color: Colors.grey[600], fontSize: 12),
                   textAlign: TextAlign.center,
                 ),
@@ -97,6 +101,18 @@ class AppFooter extends StatelessWidget {
       ),
     );
   }
+
+  void _showToast(String platform) {
+    Get.snackbar(
+      "Social Link",
+      "Redirecting to $platform...",
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.black87,
+      colorText: Colors.white,
+      margin: const EdgeInsets.all(20),
+      borderRadius: 10,
+    );
+  }
 }
 
 // --- SUB WIDGETS ---
@@ -115,10 +131,10 @@ class _FooterBrand extends StatelessWidget {
             Container(
               height: 36, width: 36,
               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
-              child: const Center(child: Text("WC", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Colors.black))),
+              child: const Center(child: Text("W", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Colors.black))),
             ),
             const SizedBox(width: 10),
-            Text("Willko\nService", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white, height: 1)),
+            Text("WILLKO", style: GoogleFonts.montserrat(fontWeight: FontWeight.w800, fontSize: 18, color: Colors.white, letterSpacing: 1.2)),
           ],
         ),
         const SizedBox(height: 16),
@@ -131,9 +147,15 @@ class _FooterBrand extends StatelessWidget {
   }
 }
 
+class _LinkItem {
+  final String title;
+  final VoidCallback onTap;
+  _LinkItem(this.title, this.onTap);
+}
+
 class _FooterLinkColumn extends StatelessWidget {
   final String title;
-  final List<String> links;
+  final List<_LinkItem> links;
 
   const _FooterLinkColumn({required this.title, required this.links});
 
@@ -148,11 +170,11 @@ class _FooterLinkColumn extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         ...links.map((link) => Padding(
-          padding: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.only(bottom: 12),
           child: InkWell(
-            onTap: () {}, // ফাংশনালিটি পরে এড করা যাবে
+            onTap: link.onTap, // ✅ Added Click Action
             child: Text(
-              link,
+              link.title,
               style: GoogleFonts.poppins(color: Colors.grey[400], fontSize: 13),
             ),
           ),
@@ -164,19 +186,63 @@ class _FooterLinkColumn extends StatelessWidget {
 
 class _SocialIcon extends StatelessWidget {
   final IconData icon;
-  const _SocialIcon({required this.icon});
+  final VoidCallback onTap;
+  const _SocialIcon({required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(right: 12),
-      height: 40, width: 40,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(30),
+      child: Container(
+        margin: const EdgeInsets.only(right: 12),
+        height: 40, width: 40,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.1),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
+        ),
+        child: Icon(icon, color: Colors.white, size: 20),
       ),
-      child: Icon(icon, color: Colors.white, size: 20),
+    );
+  }
+}
+
+// =======================================================
+// 🚀 DUMMY PAGE TO HANDLE CLICKS (Later replace with real API Data)
+// =======================================================
+class CustomPageView extends StatelessWidget {
+  final String title;
+  const CustomPageView({required this.title, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(title, style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.w600)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: GoogleFonts.playfairDisplay(fontSize: 28, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              "This is the official $title page for Willko Service. Content for this section will be fetched from the backend or added statically before publishing to the Play Store.\n\n"
+                  "We prioritize user safety and data security. Please read our guidelines carefully.",
+              style: GoogleFonts.poppins(fontSize: 15, color: Colors.grey[700], height: 1.6),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

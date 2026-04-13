@@ -18,6 +18,7 @@ class HomeView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
+      endDrawer: const UrbanDrawer(),
       // ❌ আগে এখানে Obx দিয়ে লোডিং চেক ছিল, সেটা বাদ দেওয়া হয়েছে।
       // ✅ এখন সরাসরি UI বিল্ড হবে।
       body: SingleChildScrollView(
@@ -28,15 +29,6 @@ class HomeView extends StatelessWidget {
             /// ================= HERO SECTION (Always Visible) =================
             // এটি স্ট্যাটিক, তাই সাথে সাথেই দেখা যাবে
             UrbanHeroSection(
-              selectedCityText: controller.selectedCity.value,
-              onPickCity: () => _showCityPicker(controller),
-            ),
-
-            /// ================= WHY SECTION =================
-            const SizedBox(height: 60),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              child: WhySectionUC(controller: controller),
             ),
 
             /// ================= SERVICES (Dynamic) =================
@@ -46,11 +38,20 @@ class HomeView extends StatelessWidget {
               child: ServicesChipsUC(controller: controller),
             ),
 
+
+            /// ================= WHY SECTION =================
+            const SizedBox(height: 60),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: WhySectionUC(controller: controller),
+            ),
+
+
             /// ================= POPULAR SERVICES (Dynamic) =================
             const SizedBox(height: 60),
         // ✅✅ FOOTER ADDED HERE ✅✅
             const AppFooter(),
-            const SizedBox(height: 80),
+          //  const SizedBox(height: 80),
           ],
         ),
       ),
