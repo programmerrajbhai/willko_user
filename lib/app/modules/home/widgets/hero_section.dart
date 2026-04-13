@@ -1,16 +1,25 @@
-import 'dart:async'; // 👈 Timer এর জন্য
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:willko_user/app/modules/home/home_controller.dart';
 import 'package:willko_user/utils/app_colors.dart';
+
+// --- AUTH VIEWS ---
 import '../../auth/login/login_view.dart';
 import '../../auth/signup/signup_view.dart';
+
+// --- USER VIEWS (100% Working Screens) ---
 import '../../profile/profile_view.dart';
+import '../../booking/cart/cart_view.dart';
+import '../../order/my_orders_view.dart';
+import '../../notifications/notification_view.dart';
+import '../../booking/address/address_view.dart';
+import '../../settings/settings_view.dart';
 
 // ==========================================
-// 🚀 HERO SECTION WIDGET (Now Stateful for Slider)
+// 🚀 HERO SECTION WIDGET (Stateful for Slider)
 // ==========================================
 class UrbanHeroSection extends StatefulWidget {
   const UrbanHeroSection({super.key});
@@ -24,7 +33,6 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
   int _currentPage = 0;
   Timer? _timer;
 
-  // 💎 স্লাইডারের ডেটা (ছবি এবং টেক্সট)
   final List<Map<String, String>> heroSlides = [
     {
       "image": "assets/images/service_man.jpg",
@@ -32,7 +40,7 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
       "subtitle": "Book trusted professionals for cleaning, repair, and grooming.\nExperience luxury at your doorstep."
     },
     {
-      "image": "assets/images/hero_worker.jpeg", // আপনার প্রজেক্টের আরেকটি ছবি
+      "image": "assets/images/hero_worker.jpeg",
       "title": "Expert repairs,\ninstant relief.",
       "subtitle": "AC, plumbing, and electrical experts just a tap away.\nFast, reliable, and verified."
     },
@@ -46,7 +54,6 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
   @override
   void initState() {
     super.initState();
-    // ⏰ প্রতি ৪ সেকেন্ড পর পর অটোমেটিক স্লাইড হবে
     _timer = Timer.periodic(const Duration(seconds: 4), (Timer timer) {
       if (_currentPage < heroSlides.length - 1) {
         _currentPage++;
@@ -83,9 +90,7 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
       width: double.infinity,
       child: Stack(
         children: [
-          // ==========================================
-          // 1. AUTO SLIDER (Images + Gradients + Text)
-          // ==========================================
+          // --- AUTO SLIDER ---
           PageView.builder(
             controller: _pageController,
             onPageChanged: (index) {
@@ -97,13 +102,11 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Background Image
                   Image.asset(
                     slide["image"]!,
                     fit: BoxFit.cover,
                     alignment: Alignment.topCenter,
                   ),
-                  // Dark Gradient Overlay
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -118,7 +121,6 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
                       ),
                     ),
                   ),
-                  // Text Content at Bottom
                   Positioned(
                     bottom: 20,
                     left: isMobile ? 20 : 80,
@@ -134,29 +136,21 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
             },
           ),
 
-          // ==========================================
-          // 2. STATIC HEADER (Navbar remains fixed on top)
-          // ==========================================
+          // --- STATIC HEADER ---
           Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
+            top: 0, left: 0, right: 0,
             child: SafeArea(
               child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isMobile ? 16 : 60,
-                  vertical: 10,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 60, vertical: 10),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const _BrandLogo(),
                     if (isMobile)
-                    // 🔥 Drawer Open Button
                       IconButton(
                         icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 32),
                         onPressed: () {
-                          Scaffold.of(context).openEndDrawer(); // ডানদিক থেকে ড্রয়ার খুলবে
+                          Scaffold.of(context).openEndDrawer();
                         },
                       )
                     else
@@ -167,13 +161,9 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
             ),
           ),
 
-          // ==========================================
-          // 3. SLIDER DOT INDICATORS
-          // ==========================================
+          // --- SLIDER DOT INDICATORS ---
           Positioned(
-            bottom: 10,
-            left: 0,
-            right: 0,
+            bottom: 10, left: 0, right: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(heroSlides.length, (index) {
@@ -195,7 +185,6 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
     );
   }
 
-  // --- Desktop Auth Section ---
   Widget _buildDesktopAuth(HomeController controller) {
     return Obx(() {
       if (controller.isLoggedIn.value) {
@@ -237,16 +226,13 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
     });
   }
 
-  // --- Dynamic Hero Text Section ---
   Widget _buildHeroText({required bool isMobile, required String title, required String subtitle}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 50,
-          height: 4,
-         // margin: const EdgeInsets.bottom(16), // লাইন এবং টাইটেলের মাঝে গ্যাপ
+          width: 50, height: 4,
           decoration: BoxDecoration(
             color: AppColors.primary,
             borderRadius: BorderRadius.circular(2),
@@ -256,11 +242,7 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
         Text(
           title,
           style: GoogleFonts.playfairDisplay(
-            fontSize: isMobile ? 42 : 68,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-            height: 1.1,
-            letterSpacing: 1.2,
+            fontSize: isMobile ? 42 : 68, fontWeight: FontWeight.w800, color: Colors.white, height: 1.1, letterSpacing: 1.2,
             shadows: [Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, offset: const Offset(0, 4))],
           ),
         ),
@@ -268,21 +250,17 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
         Text(
           subtitle,
           style: GoogleFonts.poppins(
-            fontSize: isMobile ? 14 : 18,
-            color: Colors.white.withOpacity(0.9),
-            fontWeight: FontWeight.w400,
-            height: 1.6,
-            letterSpacing: 0.5,
+            fontSize: isMobile ? 14 : 18, color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w400, height: 1.6, letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(height: 10), // ডট ইন্ডিকেটরের জন্য একটু জায়গা
+        const SizedBox(height: 10),
       ],
     );
   }
 }
 
 // ==========================================
-// 🚀 DEEP CURVED DRAWER WIDGET (With Click Listeners)
+// 🚀 100% WORKING DEEP CURVED DRAWER WIDGET
 // ==========================================
 class UrbanDrawer extends StatelessWidget {
   const UrbanDrawer({super.key});
@@ -293,10 +271,7 @@ class UrbanDrawer extends StatelessWidget {
 
     return Drawer(
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(40),
-          bottomLeft: Radius.circular(40),
-        ),
+        borderRadius: BorderRadius.only(topLeft: Radius.circular(40), bottomLeft: Radius.circular(40)),
       ),
       backgroundColor: const Color(0xFF121212),
       child: SafeArea(
@@ -334,20 +309,41 @@ class UrbanDrawer extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            // --- Menu Items (Scrollable) ---
+            // --- Full Working Menu Items ---
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
+                physics: const BouncingScrollPhysics(),
                 child: Obx(() => Column(
                   children: [
-                    _DrawerTile(icon: Icons.home_rounded, title: "Home", onTap: () {
-                      Get.back(); // Close Drawer
-                    }),
+                    _DrawerTile(icon: Icons.home_rounded, title: "Home", onTap: () => Get.back()),
+
                     if (controller.isLoggedIn.value) ...[
-                      _DrawerTile(icon: Icons.calendar_month_rounded, title: "My Bookings", onTap: () {
+                      // ✅ 1. Cart
+                      // _DrawerTile(icon: Icons.shopping_cart_outlined, title: "My Cart", onTap: () {
+                      //   Get.back();
+                      //   Get.to(() => const CartView());
+                      // }),
+
+                      // ✅ 2. Order History & Tracking
+                      _DrawerTile(icon: Icons.receipt_long_rounded, title: "My Orders & Tracking", onTap: () {
                         Get.back();
-                        _showToast("My Bookings", "You have no active bookings at the moment.");
+                        Get.to(() => const MyOrdersView());
                       }),
+
+                      // ✅ 3. Notifications
+                      _DrawerTile(icon: Icons.notifications_none_rounded, title: "Notifications", onTap: () {
+                        Get.back();
+                        Get.to(() => const NotificationView());
+                      }),
+
+                      // ✅ 4. Saved Addresses
+                      _DrawerTile(icon: Icons.location_on_outlined, title: "Saved Addresses", onTap: () {
+                        Get.back();
+                        Get.to(() => const AddressView());
+                      }),
+
+                      // ✅ 5. Profile
                       _DrawerTile(icon: Icons.person_outline_rounded, title: "My Profile", onTap: () {
                         Get.back();
                         Get.to(() => const ProfileView());
@@ -365,16 +361,28 @@ class UrbanDrawer extends StatelessWidget {
 
                     const Divider(color: Colors.white12, height: 30),
 
-                    _DrawerTile(icon: Icons.support_agent_rounded, title: "Help & Support", onTap: () {
+                    // ✅ 6. Settings
+                    _DrawerTile(icon: Icons.settings_outlined, title: "Settings", onTap: () {
                       Get.back();
-                      _showToast("Help & Support", "Our support agent will be live soon!");
+                      Get.to(() => const SettingsView());
                     }),
 
-                    // 💎 We Are Hiring
+                    // ✅ 7. Help & Support
+                    _DrawerTile(icon: Icons.support_agent_rounded, title: "Help & Support", onTap: () {
+                      Get.back();
+                      Get.snackbar(
+                        "Help & Support",
+                        "Live chat will be available soon!",
+                        backgroundColor: Colors.black87, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM, margin: const EdgeInsets.all(20),
+                      );
+                    }),
+
+                    // 💎 8. We Are Hiring
                     _HiringTile(),
 
                     if (controller.isLoggedIn.value) ...[
                       const Divider(color: Colors.white12, height: 30),
+                      // ✅ 9. Logout
                       _DrawerTile(icon: Icons.logout_rounded, title: "Logout", isDestructive: true, onTap: () {
                         Get.back();
                         controller.logout();
@@ -390,21 +398,6 @@ class UrbanDrawer extends StatelessWidget {
       ),
     );
   }
-
-  // --- Reusable Toast Function ---
-  void _showToast(String title, String message) {
-    Get.snackbar(
-      title,
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.black.withOpacity(0.8),
-      colorText: Colors.white,
-      margin: const EdgeInsets.all(20),
-      borderRadius: 12,
-      duration: const Duration(seconds: 3),
-      icon: const Icon(Icons.info_outline, color: Colors.white),
-    );
-  }
 }
 
 // --- Menu Tile Widget ---
@@ -415,10 +408,7 @@ class _DrawerTile extends StatelessWidget {
   final bool isDestructive;
 
   const _DrawerTile({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-    this.isDestructive = false,
+    required this.icon, required this.title, required this.onTap, this.isDestructive = false,
   });
 
   @override
@@ -442,25 +432,14 @@ class _HiringTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.primary.withOpacity(0.8), AppColors.primary.withOpacity(0.4)],
-          begin: Alignment.topLeft, end: Alignment.bottomRight,
-        ),
+        gradient: LinearGradient(colors: [AppColors.primary.withOpacity(0.8), AppColors.primary.withOpacity(0.4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.primary.withOpacity(0.5)),
       ),
       child: ListTile(
         onTap: () {
           Get.back();
-          Get.snackbar(
-            "We are Hiring!",
-            "Redirecting to careers page...",
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: AppColors.primary,
-            colorText: Colors.white,
-            margin: const EdgeInsets.all(20),
-            borderRadius: 12,
-          );
+          Get.snackbar("We are Hiring!", "Redirecting to careers page...", backgroundColor: AppColors.primary, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM, margin: const EdgeInsets.all(20), borderRadius: 12);
         },
         leading: const Icon(Icons.work_rounded, color: Colors.white, size: 24),
         title: Text("We are hiring!", style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
@@ -483,11 +462,7 @@ class _BrandLogo extends StatelessWidget {
       children: [
         Container(
           padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 4))],
-          ),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 4))]),
           child: const Text("W", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Colors.black)),
         ),
         const SizedBox(width: 12),
@@ -510,11 +485,7 @@ class _NavButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 12),
-        decoration: BoxDecoration(
-          color: isPrimary ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-          border: isPrimary ? null : Border.all(color: Colors.white54),
-        ),
+        decoration: BoxDecoration(color: isPrimary ? AppColors.primary : Colors.transparent, borderRadius: BorderRadius.circular(10), border: isPrimary ? null : Border.all(color: Colors.white54)),
         child: Text(text, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
       ),
     );
