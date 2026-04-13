@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter/foundation.dart'; // Web Gestures এর জন্য
+import 'package:flutter/gestures.dart'; // EagerGestureRecognizer এর জন্য
 import '../../../../utils/app_colors.dart';
 import 'address_controller.dart';
 
@@ -30,7 +33,7 @@ class AddAddressView extends GetView<AddressController> {
       ),
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600),
+          constraints: const BoxConstraints(maxWidth: 600), // Web Responsive Centered
           child: Form(
             key: controller.formKey,
             child: Column(
@@ -38,121 +41,162 @@ class AddAddressView extends GetView<AddressController> {
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.all(24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // --- GPS Button ---
-                        GestureDetector(
-                          onTap: () => controller.useCurrentLocation(),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.08),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.primary.withOpacity(0.2)),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Obx(() => controller.isMapLoading.value
-                                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                                    : Icon(Icons.my_location_rounded, color: AppColors.primary, size: 20)),
-                                const SizedBox(width: 10),
-                                Text("Auto-fill from Current Location", style: GoogleFonts.manrope(fontWeight: FontWeight.w700, color: AppColors.primary)),
-                              ],
-                            ),
-                          ),
-                        ),
 
-                        const SizedBox(height: 25),
-                        _sectionTitle("CONTACT INFO"),
-                        
-                        // --- Contact Details ---
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: _cardDecoration(),
-                          child: Column(
+                        // 🔥 Google Map Section
+                        SizedBox(
+                          height: 250,
+                          width: double.infinity,
+                          child: Stack(
+                            alignment: Alignment.center,
                             children: [
-                              _AnimatedTextField(
-                                controller: controller.nameController,
-                                label: "Customer Name",
-                                icon: Icons.person_outline_rounded,
-                                hint: "e.g. Raj Ahmad",
-                                validator: (v) => (v == null || v.isEmpty) ? "Name is required" : null,
+                              Obx(() => GoogleMap(
+                                initialCameraPosition: CameraPosition(
+                                  target: controller.currentPosition.value,
+                                  zoom: 15,
+                                ),
+                                onMapCreated: controller.onMapCreated,
+                                myLocationEnabled: true,
+                                myLocationButtonEnabled: false,
+                                zoomControlsEnabled: false,
+                                mapToolbarEnabled: false,
+                                onCameraMove: controller.onCameraMove,
+                                onCameraIdle: controller.onCameraIdle,
+                                // 🚀 Web & Nested Scroll Fix:
+                                gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                                  Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
+                                },
+                              )),
+
+                              // Center Custom Pin
+                              const IgnorePointer(
+                                child: Padding(
+                                  padding: EdgeInsets.only(bottom: 35),
+                                  child: Icon(Icons.location_on, size: 40, color: Colors.black),
+                                ),
                               ),
-                              const SizedBox(height: 16),
-                              _AnimatedTextField(
-                                controller: controller.phoneController,
-                                label: "Contact Number",
-                                icon: Icons.phone_android_rounded,
-                                hint: "01xxxxxxxxx",
-                                inputType: TextInputType.phone,
-                                validator: (v) => (v == null || v.length < 11) ? "Valid number required" : null,
+
+                              // Loading Indicator
+                              Obx(() {
+                                if (controller.isMapLoading.value) {
+                                  return Container(
+                                    color: Colors.white.withOpacity(0.7),
+                                    child: const Center(child: CircularProgressIndicator(color: Colors.black)),
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              }),
+
+                              // GPS Button
+                              Positioned(
+                                bottom: 16,
+                                right: 16,
+                                child: FloatingActionButton.small(
+                                  heroTag: "gps_btn",
+                                  backgroundColor: Colors.white,
+                                  onPressed: controller.getUserCurrentLocation,
+                                  child: const Icon(Icons.my_location, color: Colors.black),
+                                ),
                               ),
                             ],
                           ),
                         ),
 
-                        const SizedBox(height: 25),
-                        _sectionTitle("ADDRESS DETAILS"),
-
-                        // --- Address Details ---
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: _cardDecoration(),
+                        // --- Input Fields ---
+                        Padding(
+                          padding: const EdgeInsets.all(24),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _AnimatedTextField(
-                                controller: controller.locationNameController,
-                                label: "Location Name / Area",
-                                icon: Icons.map_outlined,
-                                hint: "e.g. Road 10, Banani",
-                                maxLines: 2,
-                                validator: (v) => (v == null || v.isEmpty) ? "Location is required" : null,
+                              _sectionTitle("CONTACT INFO"),
+
+                              Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: _cardDecoration(),
+                                child: Column(
+                                  children: [
+                                    _AnimatedTextField(
+                                      controller: controller.nameController,
+                                      label: "Customer Name",
+                                      icon: Icons.person_outline_rounded,
+                                      hint: "e.g. Raj Ahmad",
+                                      validator: (v) => (v == null || v.isEmpty) ? "Name is required" : null,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    _AnimatedTextField(
+                                      controller: controller.phoneController,
+                                      label: "Contact Number",
+                                      icon: Icons.phone_android_rounded,
+                                      hint: "01xxxxxxxxx",
+                                      inputType: TextInputType.phone,
+                                      validator: (v) => (v == null || v.length < 11) ? "Valid number required" : null,
+                                    ),
+                                  ],
+                                ),
                               ),
-                              const SizedBox(height: 16),
+
+                              const SizedBox(height: 25),
+                              _sectionTitle("ADDRESS DETAILS"),
+
+                              Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: _cardDecoration(),
+                                child: Column(
+                                  children: [
+                                    _AnimatedTextField(
+                                      controller: controller.locationNameController,
+                                      label: "Location Name / Area",
+                                      icon: Icons.map_outlined,
+                                      hint: "Pin location on map...",
+                                      maxLines: 2,
+                                      validator: (v) => (v == null || v.isEmpty) ? "Location is required" : null,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: _AnimatedTextField(
+                                            controller: controller.buildingController,
+                                            label: "Building No.",
+                                            icon: Icons.apartment_rounded,
+                                            hint: "e.g. 56",
+                                            validator: (v) => (v == null || v.isEmpty) ? "Required" : null,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: _AnimatedTextField(
+                                            controller: controller.flatController,
+                                            label: "Flat No.",
+                                            icon: Icons.door_front_door_outlined,
+                                            hint: "e.g. 4-B",
+                                            validator: (v) => (v == null || v.isEmpty) ? "Required" : null,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: 25),
+                              _sectionTitle("SAVE AS"),
+
                               Row(
                                 children: [
-                                  Expanded(
-                                    child: _AnimatedTextField(
-                                      controller: controller.buildingController,
-                                      label: "Building No.",
-                                      icon: Icons.apartment_rounded,
-                                      hint: "e.g. 56",
-                                      validator: (v) => (v == null || v.isEmpty) ? "Required" : null,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: _AnimatedTextField(
-                                      controller: controller.flatController,
-                                      label: "Flat No.",
-                                      icon: Icons.door_front_door_outlined,
-                                      hint: "e.g. 4-B",
-                                      validator: (v) => (v == null || v.isEmpty) ? "Required" : null,
-                                    ),
-                                  ),
+                                  _typeButton("Home", Icons.home_rounded),
+                                  const SizedBox(width: 12),
+                                  _typeButton("Office", Icons.work_rounded),
+                                  const SizedBox(width: 12),
+                                  _typeButton("Other", Icons.location_on_rounded),
                                 ],
                               ),
+                              const SizedBox(height: 40),
                             ],
                           ),
                         ),
-                        
-                        const SizedBox(height: 25),
-                        _sectionTitle("SAVE AS"),
-                        
-                        // --- Type Selector ---
-                        Row(
-                          children: [
-                            _typeButton("Home", Icons.home_rounded),
-                            const SizedBox(width: 12),
-                            _typeButton("Office", Icons.work_rounded),
-                            const SizedBox(width: 12),
-                            _typeButton("Other", Icons.location_on_rounded),
-                          ],
-                        ),
-                        const SizedBox(height: 40),
                       ],
                     ),
                   ),
@@ -172,9 +216,9 @@ class AddAddressView extends GetView<AddressController> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         elevation: 0,
                       ),
-                      child: controller.isSaving.value 
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : Text("CONFIRM & SAVE", style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                      child: controller.isSaving.value
+                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : Text("CONFIRM & SAVE", style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                     )),
                   ),
                 )

@@ -45,6 +45,11 @@ dependencies:
   shared_preferences: ^2.5.4
 
 
+  google_maps_flutter: ^2.5.3  # ম্যাপ দেখানোর জন্য
+  geolocator: ^11.0.0          # ইউজারের কারেন্ট লোকেশন নেওয়ার জন্য
+  geocoding: ^3.0.0            # কো-অর্ডিনেট থেকে অ্যাড্রেস (টেক্সট) বের করার জন্য
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

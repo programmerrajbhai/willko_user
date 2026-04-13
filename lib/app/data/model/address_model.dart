@@ -4,8 +4,6 @@ class AddressModel {
   String fullName;
   String phone;
   String addressLine;
-  String city;
-  String zip;
   bool isSelected;
 
   AddressModel({
@@ -14,26 +12,22 @@ class AddressModel {
     required this.fullName,
     required this.phone,
     required this.addressLine,
-    this.city = "Dhaka",
-    this.zip = "0000",
     this.isSelected = false,
   });
 
-  // JSON থেকে অবজেক্ট তৈরি (Load করার সময় লাগবে)
+  // JSON থেকে ডাটা রিড করার জন্য (ক্যাশ মেমোরি থেকে)
   factory AddressModel.fromJson(Map<String, dynamic> json) {
     return AddressModel(
-      id: json['id'],
-      type: json['type'],
-      fullName: json['fullName'],
-      phone: json['phone'],
-      addressLine: json['addressLine'],
-      city: json['city'] ?? "Dhaka",
-      zip: json['zip'] ?? "0000",
+      id: json['id'] ?? '',
+      type: json['type'] ?? 'Home',
+      fullName: json['fullName'] ?? '',
+      phone: json['phone'] ?? '',
+      addressLine: json['addressLine'] ?? '',
       isSelected: json['isSelected'] ?? false,
     );
   }
 
-  // অবজেক্ট থেকে JSON তৈরি (Save করার সময় লাগবে)
+  // JSON এ ডাটা রাইট করার জন্য (ক্যাশ মেমোরিতে সেভ করার জন্য)
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -41,8 +35,6 @@ class AddressModel {
       'fullName': fullName,
       'phone': phone,
       'addressLine': addressLine,
-      'city': city,
-      'zip': zip,
       'isSelected': isSelected,
     };
   }
