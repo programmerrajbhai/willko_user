@@ -14,15 +14,24 @@ class ProductDetailSheet extends StatelessWidget {
     return Obx(() {
       final prod = c.selectedProductForSheet.value;
       if (prod == null) return const SizedBox.shrink();
-      
+
       final currentQty = c.sheetTempQty.value;
       final price = (prod["priceInt"] ?? 0) as int;
 
       return Container(
-        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
         child: Column(
           children: [
-            Align(alignment: Alignment.centerRight, child: IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close))),
+            Align(
+              alignment: Alignment.centerRight,
+              child: IconButton(
+                onPressed: () => Get.back(),
+                icon: const Icon(Icons.close),
+              ),
+            ),
             Expanded(
               child: SingleChildScrollView(
                 controller: scrollController,
@@ -30,9 +39,18 @@ class ProductDetailSheet extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text((prod["title"] ?? "").toString(), style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold)),
+                    Text(
+                      (prod["title"] ?? "").toString(),
+                      style: GoogleFonts.poppins(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 10),
-                    Text((prod["description"] ?? "").toString(), style: const TextStyle(color: Colors.grey)),
+                    Text(
+                      (prod["description"] ?? "").toString(),
+                      style: const TextStyle(color: Colors.grey),
+                    ),
                   ],
                 ),
               ),
@@ -44,22 +62,42 @@ class ProductDetailSheet extends StatelessWidget {
                   // Qty
                   Row(
                     children: [
-                      IconButton(onPressed: c.decrementSheetQty, icon: const Icon(Icons.remove)),
-                      Text("$currentQty", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      IconButton(onPressed: c.incrementSheetQty, icon: const Icon(Icons.add)),
+                      IconButton(
+                        onPressed: c.decrementSheetQty,
+                        icon: const Icon(Icons.remove),
+                      ),
+                      Text(
+                        "$currentQty",
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: c.incrementSheetQty,
+                        icon: const Icon(Icons.add),
+                      ),
                     ],
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: c.confirmSheetSelection,
-                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 16)),
-                      child: Text(currentQty == 0 ? "Remove" : "Add (SAR ${price * currentQty})", style: const TextStyle(color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: Text(
+                        currentQty == 0
+                            ? "Remove"
+                            : "Add (QR ${price * currentQty})",
+                        style: const TextStyle(color: Colors.white),
+                      ),
                     ),
                   ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       );

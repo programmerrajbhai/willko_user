@@ -25,7 +25,7 @@ class OrderDetailsController extends GetxController {
 
   void fetchOrderDetails(String orderId) async {
     isLoading.value = true;
-    
+
     var response = await ApiService.fetchOrderDetails(orderId);
 
     if (response['status'] == 'success') {
@@ -33,31 +33,32 @@ class OrderDetailsController extends GetxController {
       var info = data['order_info'];
       var price = data['price_details'];
       var address = data['address'];
-      var provider = data['provider']; 
+      var provider = data['provider'];
       var items = data['items'] as List;
 
       orderDetails.value = {
-        "id": "#ORD-${info['id'].toString().padLeft(4, '0')}", 
+        "id": "#ORD-${info['id'].toString().padLeft(4, '0')}",
         "real_id": info['id'], // ✅ API এর জন্য রিয়েল আইডি
-        "service_name": items.isNotEmpty 
-            ? "${items[0]['service_name']}${items.length > 1 ? ' & ${items.length - 1} more' : ''}" 
+        "service_name": items.isNotEmpty
+            ? "${items[0]['service_name']}${items.length > 1 ? ' & ${items.length - 1} more' : ''}"
             : "Service",
         "status": _capitalize(info['status']),
         "date": info['schedule_date'],
         "time": info['schedule_time'],
         "address": address['details'] ?? "Address not found",
         "payment_method": info['payment_method'].toString().toUpperCase(),
-        "price": "SAR ${price['final_total']}",
-        "provider": provider != null ? {
-          "name": provider['name'],
-          "phone": provider['phone'],
-          "rating": provider['rating'] ?? "New",
-          "image": provider['image'] ?? "", 
-          "jobs_done": "Verified" 
-        } : null,
-        "timeline": _generateTimeline(info['status'], info['schedule_time'])
+        "price": "QR ${price['final_total']}",
+        "provider": provider != null
+            ? {
+                "name": provider['name'],
+                "phone": provider['phone'],
+                "rating": provider['rating'] ?? "New",
+                "image": provider['image'] ?? "",
+                "jobs_done": "Verified",
+              }
+            : null,
+        "timeline": _generateTimeline(info['status'], info['schedule_time']),
       };
-
     } else {
       Get.snackbar("Error", response['message'] ?? "Failed to load details");
     }
@@ -69,19 +70,37 @@ class OrderDetailsController extends GetxController {
   List<Map<String, dynamic>> _generateTimeline(String status, String time) {
     status = status.toLowerCase();
     bool isPlaced = true;
-    bool isAssigned = ['assigned', 'on_way', 'started', 'completed'].contains(status);
+    bool isAssigned = [
+      'assigned',
+      'on_way',
+      'started',
+      'completed',
+    ].contains(status);
     bool isStarted = ['started', 'completed'].contains(status);
     bool isCompleted = status == 'completed';
 
     return [
       {"title": "Booking Placed", "time": "Done", "isCompleted": isPlaced},
-      {"title": "Provider Assigned", "time": isAssigned ? "Done" : "-", "isCompleted": isAssigned},
-      {"title": "Service Started", "time": isStarted ? "Done" : "-", "isCompleted": isStarted},
-      {"title": "Service Completed", "time": isCompleted ? "Done" : "-", "isCompleted": isCompleted},
+      {
+        "title": "Provider Assigned",
+        "time": isAssigned ? "Done" : "-",
+        "isCompleted": isAssigned,
+      },
+      {
+        "title": "Service Started",
+        "time": isStarted ? "Done" : "-",
+        "isCompleted": isStarted,
+      },
+      {
+        "title": "Service Completed",
+        "time": isCompleted ? "Done" : "-",
+        "isCompleted": isCompleted,
+      },
     ];
   }
 
-  String _capitalize(String s) => s.isNotEmpty ? s[0].toUpperCase() + s.substring(1) : "";
+  String _capitalize(String s) =>
+      s.isNotEmpty ? s[0].toUpperCase() + s.substring(1) : "";
 
   // --- Call Provider ---
   void callProvider(String phone) async {
@@ -93,14 +112,15 @@ class OrderDetailsController extends GetxController {
     }
   }
 
-
   void _processCancellation() async {
     Get.back(); // ডায়ালগ বন্ধ
     isLoading.value = true;
-    
+
     // ✅ রিয়েল আইডি পাঠানো হচ্ছে (Display ID #ORD-xxx না)
     String realId = orderDetails['real_id'].toString();
-    String reason = cancelReasonController.text.isEmpty ? "Changed my mind" : cancelReasonController.text;
+    String reason = cancelReasonController.text.isEmpty
+        ? "Changed my mind"
+        : cancelReasonController.text;
 
     var response = await ApiService.cancelOrder(realId, reason);
 
@@ -109,40 +129,61 @@ class OrderDetailsController extends GetxController {
       var updatedData = Map<String, dynamic>.from(orderDetails);
       updatedData['status'] = "Cancelled";
       orderDetails.value = updatedData;
-      
-      Get.snackbar("Success", "Booking cancelled successfully", 
-          backgroundColor: Colors.green, colorText: Colors.white);
-      
+
+      Get.snackbar(
+        "Success",
+        "Booking cancelled successfully",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+
       // ✅ অর্ডার লিস্ট রিফ্রেশ করার জন্য কন্ট্রোলার আপডেট
       if (Get.isRegistered<MyOrdersController>()) {
         Get.find<MyOrdersController>().loadOrders();
       }
     } else {
-      Get.snackbar("Failed", response['message'] ?? "Could not cancel order", 
-          backgroundColor: Colors.redAccent, colorText: Colors.white);
+      Get.snackbar(
+        "Failed",
+        response['message'] ?? "Could not cancel order",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
     }
 
     isLoading.value = false;
   }
+
   // --- Cancel Order Dialog ---
   void cancelOrder() {
     cancelReasonController.clear();
     Get.defaultDialog(
       title: "Cancel Booking?",
-      titleStyle: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18),
+      titleStyle: GoogleFonts.poppins(
+        fontWeight: FontWeight.bold,
+        fontSize: 18,
+      ),
       contentPadding: const EdgeInsets.all(20),
       radius: 16,
       content: Column(
         children: [
-          Text("Are you sure? This action cannot be undone.", textAlign: TextAlign.center, style: GoogleFonts.poppins(color: Colors.grey, fontSize: 13)),
+          Text(
+            "Are you sure? This action cannot be undone.",
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(color: Colors.grey, fontSize: 13),
+          ),
           const SizedBox(height: 15),
           TextField(
             controller: cancelReasonController,
             maxLines: 2,
             decoration: InputDecoration(
               hintText: "Reason (Optional)",
-              hintStyle: GoogleFonts.poppins(fontSize: 12, color: Colors.grey.shade400),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              hintStyle: GoogleFonts.poppins(
+                fontSize: 12,
+                color: Colors.grey.shade400,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               contentPadding: const EdgeInsets.all(12),
             ),
           ),
@@ -153,10 +194,12 @@ class OrderDetailsController extends GetxController {
         ElevatedButton(
           onPressed: _processCancellation,
           style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-          child: const Text("Yes, Cancel", style: TextStyle(color: Colors.white)),
+          child: const Text(
+            "Yes, Cancel",
+            style: TextStyle(color: Colors.white),
+          ),
         ),
       ],
     );
   }
-
 }

@@ -17,9 +17,9 @@ class MainContentList extends StatelessWidget {
 
       final list = c.packages;
       final idx = c.selectedItemIndex.value;
-      
-      final currentTitle = (c.items.isNotEmpty && idx < c.items.length) 
-          ? (c.items[idx]["title"] ?? "Services").toString() 
+
+      final currentTitle = (c.items.isNotEmpty && idx < c.items.length)
+          ? (c.items[idx]["title"] ?? "Services").toString()
           : "All Services";
 
       return Column(
@@ -29,12 +29,15 @@ class MainContentList extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 16),
             child: Text(
               currentTitle,
-              style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textBlack),
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textBlack,
+              ),
             ),
           ),
 
-          if (list.isEmpty)
-            _buildEmptyState(),
+          if (list.isEmpty) _buildEmptyState(),
 
           ...list.map((p) => ProductRow(p: p, c: c)),
         ],
@@ -46,12 +49,18 @@ class MainContentList extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(40),
       width: double.infinity,
-      decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Column(
         children: [
           Icon(Icons.search_off_rounded, size: 48, color: Colors.grey[400]),
           const SizedBox(height: 12),
-          Text("No services available here.", style: GoogleFonts.poppins(color: Colors.grey[500])),
+          Text(
+            "No services available here.",
+            style: GoogleFonts.poppins(color: Colors.grey[500]),
+          ),
         ],
       ),
     );
@@ -65,8 +74,17 @@ class ProductRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shortDetails = (p["shortDetails"] is List) ? (p["shortDetails"] as List) : [];
+    final shortDetails = (p["shortDetails"] is List)
+        ? (p["shortDetails"] as List)
+        : [];
     final hasDiscount = (p["tag"] ?? "").toString().isNotEmpty;
+
+    // 🔥 FIX 1: ডাটাবেস থেকে ইমেজ ফাইলের নাম রিসিভ করে সার্ভারের বেস ইউআরএল যুক্ত করা হচ্ছে
+    final String imageName = (p['image'] ?? p['image_url'] ?? "").toString();
+    // ⚠️ "https://yourdomain.com/api/uploads/" এর জায়গায় আপনার সার্ভারের আসল লিঙ্কটি দিন
+    final String fullImageUrl = imageName.isNotEmpty
+        ? "https://yourdomain.com/api/uploads/$imageName"
+        : "https://ui-avatars.com/api/?name=Service&background=E0E0E0";
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -74,7 +92,11 @@ class ProductRow extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-           BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 15, offset: const Offset(0, 5)),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
         ],
         border: Border.all(color: Colors.grey.withOpacity(0.1)),
       ),
@@ -97,20 +119,31 @@ class ProductRow extends StatelessWidget {
                       if (hasDiscount)
                         Container(
                           margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFFF0E6),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             (p["tag"] ?? "").toString().toUpperCase(),
-                            style: GoogleFonts.poppins(fontSize: 9, fontWeight: FontWeight.w700, color: Colors.deepOrange),
+                            style: GoogleFonts.poppins(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.deepOrange,
+                            ),
                           ),
                         ),
 
                       Text(
                         (p["title"] ?? "Service").toString(),
-                        style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textBlack),
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textBlack,
+                        ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -121,37 +154,69 @@ class ProductRow extends StatelessWidget {
                         children: [
                           Container(
                             padding: const EdgeInsets.all(2),
-                            decoration: const BoxDecoration(color: Colors.amber, shape: BoxShape.circle),
-                            child: const Icon(Icons.star, size: 10, color: Colors.white),
+                            decoration: const BoxDecoration(
+                              color: Colors.amber,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.star,
+                              size: 10,
+                              color: Colors.white,
+                            ),
                           ),
                           const SizedBox(width: 6),
                           Text(
                             "${p["rating"] ?? 4.8} (${p["reviews"] ?? '100+'} reviews)",
-                            style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey[600], fontWeight: FontWeight.w500),
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 12),
-                      
-                      // Price
+
+                      // 🔥 FIX 2: SAR কে রিপ্লেস করে QR করা হয়েছে
                       Text(
-                        (p["priceStr"] ?? "SAR 0").toString(),
-                        style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textBlack),
+                        (p["priceStr"] ?? "QR 0").toString().replaceAll('SAR', 'QR'),
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textBlack,
+                        ),
                       ),
-                      
+
                       const SizedBox(height: 8),
                       // Details (Max 2 lines)
-                      ...shortDetails.take(2).map((d) => Padding(
-                        padding: const EdgeInsets.only(bottom: 2),
-                        child: Row(
-                          children: [
-                            Icon(Icons.check, size: 12, color: Colors.grey[400]),
-                            const SizedBox(width: 6),
-                            Expanded(child: Text(d.toString(), style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey[600]), maxLines: 1)),
-                          ],
+                      ...shortDetails
+                          .take(2)
+                          .map(
+                            (d) => Padding(
+                          padding: const EdgeInsets.only(bottom: 2),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.check,
+                                size: 12,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  d.toString(),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    color: Colors.grey[600],
+                                  ),
+                                  maxLines: 1,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      )),
+                      ),
                     ],
                   ),
                 ),
@@ -164,20 +229,22 @@ class ProductRow extends StatelessWidget {
                     Stack(
                       alignment: Alignment.bottomCenter,
                       children: [
+                        // 🔥 FIX 3: ইমেজ লোডিং সিস্টেম আপডেট করা হয়েছে
                         Container(
-                          height: 85, width: 85,
-                          margin: const EdgeInsets.only(bottom: 14), // Space for button
+                          height: 85,
+                          width: 85,
+                          margin: const EdgeInsets.only(bottom: 14),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
                             color: Colors.grey[100],
                             image: DecorationImage(
-                              image: NetworkImage((p['image_url'] ?? "").toString()),
+                              image: NetworkImage(fullImageUrl), // ডাইনামিক ইমেজ ইউআরএল
                               fit: BoxFit.cover,
-                              onError: (_, __) => {}, // Error placeholder handled by color
+                              onError: (_, __) => {},
                             ),
                           ),
                         ),
-                        
+
                         // Add Button Overlay
                         Transform.translate(
                           offset: const Offset(0, 0),
@@ -189,16 +256,24 @@ class ProductRow extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: AppColors.primary.withOpacity(0.2)),
-                                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 5, offset: const Offset(0, 2))],
+                                border: Border.all(
+                                  color: AppColors.primary.withOpacity(0.2),
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 5,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
                               child: Center(
                                 child: Text(
                                   "ADD +",
                                   style: GoogleFonts.poppins(
-                                    color: AppColors.primary, 
-                                    fontWeight: FontWeight.bold, 
-                                    fontSize: 12
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
                                   ),
                                 ),
                               ),
@@ -208,7 +283,7 @@ class ProductRow extends StatelessWidget {
                       ],
                     ),
                   ],
-                )
+                ),
               ],
             ),
           ),
@@ -217,3 +292,4 @@ class ProductRow extends StatelessWidget {
     );
   }
 }
+

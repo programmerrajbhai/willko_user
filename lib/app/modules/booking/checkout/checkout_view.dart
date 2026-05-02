@@ -16,7 +16,14 @@ class CheckoutView extends GetView<CheckoutController> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA), // Soft luxurious background
       appBar: AppBar(
-        title: Text("Checkout", style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 16, color: Colors.black)),
+        title: Text(
+          "Checkout",
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+            color: Colors.black,
+          ),
+        ),
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
@@ -38,7 +45,7 @@ class CheckoutView extends GetView<CheckoutController> {
             // 1. Delivery Address
             _SectionHeader(title: "DELIVERY LOCATION"),
             _SlideInAnimation(delay: 100, child: _buildAddressCard()),
-            
+
             const SizedBox(height: 24),
 
             // 2. Schedule
@@ -67,7 +74,10 @@ class CheckoutView extends GetView<CheckoutController> {
           ],
         ),
       ),
-      bottomNavigationBar: _SlideInAnimation(delay: 600, child: _buildBottomBar()),
+      bottomNavigationBar: _SlideInAnimation(
+        delay: 600,
+        child: _buildBottomBar(),
+      ),
     );
   }
 
@@ -75,7 +85,7 @@ class CheckoutView extends GetView<CheckoutController> {
   Widget _buildAddressCard() {
     return Obx(() {
       final addr = controller.selectedAddress.value;
-      
+
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.all(20),
@@ -87,15 +97,20 @@ class CheckoutView extends GetView<CheckoutController> {
             children: [
               // Icon Box
               Container(
-                height: 45, width: 45,
+                height: 45,
+                width: 45,
                 decoration: BoxDecoration(
                   color: Colors.black, // Active Black
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.location_on_rounded, color: Colors.white, size: 22),
+                child: const Icon(
+                  Icons.location_on_rounded,
+                  color: Colors.white,
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 16),
-              
+
               // Text Info
               Expanded(
                 child: Column(
@@ -105,19 +120,35 @@ class CheckoutView extends GetView<CheckoutController> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          addr == null ? "Select Address" : "Home", // Label (Home/Work)
-                          style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
+                          addr == null
+                              ? "Select Address"
+                              : "Home", // Label (Home/Work)
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
                         ),
                         Text(
                           "CHANGE",
-                          style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey.shade500),
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.grey.shade500,
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      addr == null ? "Tap to add your delivery location" : addr.addressLine,
-                      style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade600, height: 1.4),
+                      addr == null
+                          ? "Tap to add your delivery location"
+                          : addr.addressLine,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                        height: 1.4,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -145,16 +176,34 @@ class CheckoutView extends GetView<CheckoutController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(children: [
-                    const Icon(Icons.calendar_today_rounded, size: 16, color: Colors.grey),
-                    const SizedBox(width: 8),
-                    Text("Date", style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey)),
-                  ]),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_today_rounded,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        "Date",
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 8),
-                  Obx(() => Text(
-                    controller.formattedDate, 
-                    style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.black)
-                  )),
+                  Obx(
+                    () => Text(
+                      controller.formattedDate,
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -171,16 +220,34 @@ class CheckoutView extends GetView<CheckoutController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(children: [
-                    const Icon(Icons.access_time_rounded, size: 16, color: Colors.grey),
-                    const SizedBox(width: 8),
-                    Text("Time", style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey)),
-                  ]),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.access_time_rounded,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        "Time",
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 8),
-                  Obx(() => Text(
-                    controller.formattedTime, 
-                    style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.black)
-                  )),
+                  Obx(
+                    () => Text(
+                      controller.formattedTime,
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -195,78 +262,112 @@ class CheckoutView extends GetView<CheckoutController> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: _proBoxDecoration(),
-      child: Obx(() => Column(
-        children: List.generate(controller.cartItems.length, (index) {
-          final item = controller.cartItems[index];
-          final raw = item['raw'] ?? {};
-          final isLast = index == controller.cartItems.length - 1;
+      child: Obx(
+        () => Column(
+          children: List.generate(controller.cartItems.length, (index) {
+            final item = controller.cartItems[index];
+            final raw = item['raw'] ?? {};
+            final isLast = index == controller.cartItems.length - 1;
 
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    // Image Box
-                    Container(
-                      height: 55, width: 55,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(10),
-                        image: (raw['image_url'] != null) ? DecorationImage(
-                          image: NetworkImage(raw['image_url']), fit: BoxFit.cover
-                        ) : null,
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      // Image Box
+                      Container(
+                        height: 55,
+                        width: 55,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(10),
+                          image: (raw['image_url'] != null)
+                              ? DecorationImage(
+                                  image: NetworkImage(raw['image_url']),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
+                        ),
+                        child: (raw['image_url'] == null)
+                            ? const Icon(Icons.category, color: Colors.grey)
+                            : null,
                       ),
-                      child: (raw['image_url'] == null) 
-                        ? const Icon(Icons.category, color: Colors.grey) 
-                        : null,
-                    ),
-                    const SizedBox(width: 16),
-                    
-                    // Details
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item['title'] ?? "Service",
-                            style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.black),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            "SAR ${item['priceInt']}",
-                            style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black54),
-                          ),
-                        ],
-                      ),
-                    ),
+                      const SizedBox(width: 16),
 
-                    // Minimal Counter
-                    Container(
-                      height: 36,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(8),
+                      // Details
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item['title'] ?? "Service",
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: Colors.black,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "QR ${item['priceInt']}",
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      child: Row(
-                        children: [
-                          _iconBtn(Icons.remove, () => controller.decrementQty(index)),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Text("${item['quantity']}", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 14)),
-                          ),
-                          _iconBtn(Icons.add, () => controller.incrementQty(index)),
-                        ],
+
+                      // Minimal Counter
+                      Container(
+                        height: 36,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            _iconBtn(
+                              Icons.remove,
+                              () => controller.decrementQty(index),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                              ),
+                              child: Text(
+                                "${item['quantity']}",
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                            _iconBtn(
+                              Icons.add,
+                              () => controller.incrementQty(index),
+                            ),
+                          ],
+                        ),
                       ),
-                    )
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              if (!isLast) Divider(height: 1, color: Colors.grey.shade100, indent: 16, endIndent: 16),
-            ],
-          );
-        }),
-      )),
+                if (!isLast)
+                  Divider(
+                    height: 1,
+                    color: Colors.grey.shade100,
+                    indent: 16,
+                    endIndent: 16,
+                  ),
+              ],
+            );
+          }),
+        ),
+      ),
     );
   }
 
@@ -288,7 +389,12 @@ class CheckoutView extends GetView<CheckoutController> {
       child: Column(
         children: [
           _buildPaymentOption("Cash on Delivery", Icons.wallet_rounded),
-          Divider(height: 1, color: Colors.grey.shade100, indent: 16, endIndent: 16),
+          Divider(
+            height: 1,
+            color: Colors.grey.shade100,
+            indent: 16,
+            endIndent: 16,
+          ),
           _buildPaymentOption("Digital Payment", Icons.credit_card_rounded),
         ],
       ),
@@ -304,29 +410,46 @@ class CheckoutView extends GetView<CheckoutController> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
           child: Row(
             children: [
-              Icon(icon, color: isSelected ? Colors.black : Colors.grey, size: 22),
+              Icon(
+                icon,
+                color: isSelected ? Colors.black : Colors.grey,
+                size: 22,
+              ),
               const SizedBox(width: 14),
               Expanded(
                 child: Text(
                   title,
                   style: GoogleFonts.poppins(
-                    fontSize: 14, 
+                    fontSize: 14,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color: isSelected ? Colors.black : Colors.grey.shade700
+                    color: isSelected ? Colors.black : Colors.grey.shade700,
                   ),
                 ),
               ),
               // Custom Radio Circle
               Container(
-                height: 20, width: 20,
+                height: 20,
+                width: 20,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: isSelected ? Colors.black : Colors.grey.shade300, width: 2),
+                  border: Border.all(
+                    color: isSelected ? Colors.black : Colors.grey.shade300,
+                    width: 2,
+                  ),
                 ),
-                child: isSelected 
-                  ? Center(child: Container(height: 10, width: 10, decoration: const BoxDecoration(color: Colors.black, shape: BoxShape.circle)))
-                  : null,
-              )
+                child: isSelected
+                    ? Center(
+                        child: Container(
+                          height: 10,
+                          width: 10,
+                          decoration: const BoxDecoration(
+                            color: Colors.black,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      )
+                    : null,
+              ),
             ],
           ),
         ),
@@ -335,38 +458,68 @@ class CheckoutView extends GetView<CheckoutController> {
   }
 
   // --- 5. Bill Summary ---
- // --- 5. Bill Summary (Updated: No Taxes) ---
+  // --- 5. Bill Summary (Updated: No Taxes) ---
   Widget _buildBillSummary() {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: _proBoxDecoration(),
-      child: Obx(() => Column(
-        children: [
-          // শুধুমাত্র সাবটোটাল দেখানো হচ্ছে, কারণ কোনো ট্যাক্স নেই
-          _billRow("Subtotal", "SAR ${controller.itemTotal.toStringAsFixed(0)}"),
-          
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: DottedLineSeparator(),
-          ),
-          
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("Total Amount", style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
-              Text("SAR ${controller.grandTotal.toStringAsFixed(0)}", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
-            ],
-          ),
-        ],
-      )),
+      child: Obx(
+        () => Column(
+          children: [
+            // শুধুমাত্র সাবটোটাল দেখানো হচ্ছে, কারণ কোনো ট্যাক্স নেই
+            _billRow(
+              "Subtotal",
+              "QR ${controller.itemTotal.toStringAsFixed(0)}",
+            ),
+
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: DottedLineSeparator(),
+            ),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Total Amount",
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                Text(
+                  "QR ${controller.grandTotal.toStringAsFixed(0)}",
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
+
   Widget _billRow(String title, String amount) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey.shade600)),
-        Text(amount, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87)),
+        Text(
+          title,
+          style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey.shade600),
+        ),
+        Text(
+          amount,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
       ],
     );
   }
@@ -378,7 +531,13 @@ class CheckoutView extends GetView<CheckoutController> {
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(top: BorderSide(color: Colors.grey.shade200)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -5))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+        ],
       ),
       child: SafeArea(
         child: Row(
@@ -387,33 +546,74 @@ class CheckoutView extends GetView<CheckoutController> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("TOTAL", style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1)),
-                Obx(() => Text("SAR ${controller.grandTotal.toStringAsFixed(0)}", style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black))),
+                Text(
+                  "TOTAL",
+                  style: GoogleFonts.poppins(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                    letterSpacing: 1,
+                  ),
+                ),
+                Obx(
+                  () => Text(
+                    "QR ${controller.grandTotal.toStringAsFixed(0)}",
+                    style: GoogleFonts.poppins(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
               ],
             ),
             const Spacer(),
-            Obx(() => SizedBox(
-              height: 52,
-              width: 180,
-              child: ElevatedButton(
-                onPressed: controller.isLoading.value ? null : controller.handlePlaceOrder,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black, // Pro Black Button
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  elevation: 0,
-                ),
-                child: controller.isLoading.value 
-                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text("Place Order", style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white)),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18)
-                      ],
+            Obx(
+              () => SizedBox(
+                height: 52,
+                width: 180,
+                child: ElevatedButton(
+                  onPressed: controller.isLoading.value
+                      ? null
+                      : controller.handlePlaceOrder,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black, // Pro Black Button
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
                     ),
+                    elevation: 0,
+                  ),
+                  child: controller.isLoading.value
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Place Order",
+                              style: GoogleFonts.poppins(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(
+                              Icons.arrow_forward_rounded,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ],
+                        ),
+                ),
               ),
-            )),
+            ),
           ],
         ),
       ),
@@ -431,8 +631,13 @@ class _SectionHeader extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12, left: 4),
       child: Text(
-        title, 
-        style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.grey.shade500, letterSpacing: 1.2)
+        title,
+        style: GoogleFonts.poppins(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: Colors.grey.shade500,
+          letterSpacing: 1.2,
+        ),
       ),
     );
   }
@@ -443,7 +648,11 @@ BoxDecoration _proBoxDecoration() {
     color: Colors.white,
     borderRadius: BorderRadius.circular(16),
     boxShadow: [
-      BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 4)),
+      BoxShadow(
+        color: Colors.black.withOpacity(0.04),
+        blurRadius: 15,
+        offset: const Offset(0, 4),
+      ),
     ],
     border: Border.all(color: Colors.grey.withOpacity(0.1)),
   );
@@ -465,7 +674,9 @@ class DottedLineSeparator extends StatelessWidget {
             return SizedBox(
               width: dashWidth,
               height: 1,
-              child: DecoratedBox(decoration: BoxDecoration(color: Colors.grey.shade300)),
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: Colors.grey.shade300),
+              ),
             );
           }),
         );
@@ -475,13 +686,43 @@ class DottedLineSeparator extends StatelessWidget {
 }
 
 class _SlideInAnimation extends StatefulWidget {
-  final Widget child; final int delay;
+  final Widget child;
+  final int delay;
   const _SlideInAnimation({required this.child, required this.delay});
-  @override State<_SlideInAnimation> createState() => _SState();
+  @override
+  State<_SlideInAnimation> createState() => _SState();
 }
-class _SState extends State<_SlideInAnimation> with SingleTickerProviderStateMixin {
-  late AnimationController _c; late Animation<Offset> _o; late Animation<double> _f;
-  @override void initState() { super.initState(); _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 600)); _o = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(CurvedAnimation(parent: _c, curve: Curves.easeOut)); _f = Tween<double>(begin: 0, end: 1).animate(_c); Future.delayed(Duration(milliseconds: widget.delay), () { if(mounted) _c.forward(); }); }
-  @override Widget build(BuildContext context) => FadeTransition(opacity: _f, child: SlideTransition(position: _o, child: widget.child));
-  @override void dispose() { _c.dispose(); super.dispose(); }
+
+class _SState extends State<_SlideInAnimation>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _c;
+  late Animation<Offset> _o;
+  late Animation<double> _f;
+  @override
+  void initState() {
+    super.initState();
+    _c = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _o = Tween<Offset>(
+      begin: const Offset(0, 0.1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _c, curve: Curves.easeOut));
+    _f = Tween<double>(begin: 0, end: 1).animate(_c);
+    Future.delayed(Duration(milliseconds: widget.delay), () {
+      if (mounted) _c.forward();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => FadeTransition(
+    opacity: _f,
+    child: SlideTransition(position: _o, child: widget.child),
+  );
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
 }

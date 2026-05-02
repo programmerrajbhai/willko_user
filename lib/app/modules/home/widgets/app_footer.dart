@@ -82,18 +82,7 @@ class AppFooter extends StatelessWidget {
                   style: GoogleFonts.poppins(color: Colors.grey[600], fontSize: 12),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.location_on, color: Colors.grey, size: 14),
-                    const SizedBox(width: 4),
-                    Text(
-                      "Bangladesh",
-                      style: GoogleFonts.poppins(color: Colors.grey[400], fontSize: 12, fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                )
+
               ],
             ),
           ),
