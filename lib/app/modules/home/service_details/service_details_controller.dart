@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart'; // ✅ Import SharedPreferences
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../data/services/api_service.dart';
 import '../../booking/checkout/checkout_view.dart';
 import '../../booking/checkout/checkout_controller.dart';
-import '../../auth/login/login_view.dart'; // ✅ Import LoginView
+import '../../auth/login/login_view.dart';
 import 'widgets/product_detail_sheet.dart';
 import 'widgets/cart_sheets.dart';
 
@@ -18,9 +18,12 @@ class ServiceDetailsController extends GetxController {
 
   // --- State Variables ---
   var isLoading = true.obs;
-  var isLoggedIn = false.obs; // ✅ Login Status Track করার জন্য
+  var isLoggedIn = false.obs;
   var serviceData = <String, dynamic>{}.obs;
-  final selectedItemIndex = 0.obs;
+
+  // 🔥 ডিফল্টভাবে -1 ("All" category) সিলেক্ট থাকবে
+  final selectedItemIndex = (-1).obs;
+
   final cartItems = <String, Map<String, dynamic>>{}.obs;
   final selectedProductForSheet = Rxn<Map<String, dynamic>>();
   final sheetTempQty = 1.obs;
@@ -28,18 +31,16 @@ class ServiceDetailsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _checkLoginStatus(); // ✅ অ্যাপ ওপেন হলেই লগইন স্ট্যাটাস চেক হবে
+    _checkLoginStatus();
     fetchCategoryServices();
   }
 
-  // ✅ 1. লগইন স্ট্যাটাস চেক মেথড
   Future<void> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     isLoggedIn.value = (token != null && token.isNotEmpty);
   }
 
-  // ... (API Calling Logic - No Change)
   void fetchCategoryServices() async {
     try {
       isLoading.value = true;
@@ -49,7 +50,6 @@ class ServiceDetailsController extends GetxController {
       final url = Uri.parse(
         "${ApiService.baseUrl}/user/home/category_services.php?category_id=$catId",
       );
-      print("🔵 Fetching Services: $url");
 
       final response = await http.get(url);
 
@@ -58,18 +58,15 @@ class ServiceDetailsController extends GetxController {
         if (json['status'] == 'success') {
           serviceData.value = json['data'];
           serviceData.refresh();
-        } else {
-          print("🔴 API Error: ${json['message']}");
         }
       }
     } catch (e) {
-      print("🔴 Connection Error: $e");
+      debugPrint("🔴 Connection Error: $e");
     } finally {
       isLoading.value = false;
     }
   }
 
-  // ... (Getters - No Change)
   String get title =>
       (serviceData["label"] ?? serviceData["name"] ?? "Service").toString();
   String get bookings => (serviceData["bookings"] ?? "100+").toString();
@@ -79,31 +76,38 @@ class ServiceDetailsController extends GetxController {
   List<Map<String, dynamic>> get items =>
       (serviceData["items"] as List? ?? []).cast<Map<String, dynamic>>();
 
-  List<Map<String, dynamic>> get packages {
-    if (isLoading.value) return [];
+  // 🔥 নতুন মেথড: নির্দিষ্ট ইনডেক্সের (যেমন Servicing) আইটেমগুলো বের করার জন্য
+  List<Map<String, dynamic>> getPackagesForIndex(int index) {
     final rawData = serviceData["packagesByItem"];
     if (rawData == null) return [];
-    final idxStr = selectedItemIndex.value.toString();
-    final idxInt = selectedItemIndex.value;
+
+    final idxStr = index.toString();
     if (rawData is Map) {
-      if (rawData.containsKey(idxInt))
-        return List<Map<String, dynamic>>.from(rawData[idxInt]);
-      if (rawData.containsKey(idxStr))
+      if (rawData.containsKey(index)) {
+        return List<Map<String, dynamic>>.from(rawData[index]);
+      }
+      if (rawData.containsKey(idxStr)) {
         return List<Map<String, dynamic>>.from(rawData[idxStr]);
-    } else if (rawData is List && idxInt < rawData.length) {
-      return List<Map<String, dynamic>>.from(rawData[idxInt]);
+      }
+    } else if (rawData is List && index < rawData.length) {
+      if (rawData[index] != null) {
+        return List<Map<String, dynamic>>.from(rawData[index]);
+      }
     }
     return [];
   }
 
+  List<Map<String, dynamic>> get packages => getPackagesForIndex(selectedItemIndex.value);
+
   Map<String, dynamic> get currentBannerData {
     final idx = selectedItemIndex.value;
-    final categoryTitle = (items.isNotEmpty && idx < items.length)
+    final categoryTitle = (items.isNotEmpty && idx >= 0 && idx < items.length)
         ? (items[idx]["title"] ?? "Service").toString()
         : title;
     final slug = (serviceData["slug"] ?? "").toString().toLowerCase();
     Color bg = const Color(0xFF6C45E5);
     IconData icon = Icons.cleaning_services;
+
     if (slug.contains("ac")) {
       bg = const Color(0xFFB71C1C);
       icon = Icons.ac_unit;
@@ -114,6 +118,7 @@ class ServiceDetailsController extends GetxController {
       bg = const Color(0xFF0277BD);
       icon = Icons.plumbing;
     }
+
     return {
       "title": "$categoryTitle Experts",
       "bullets": ["Verified Pro", "Best Price", "Secure"],
@@ -205,9 +210,9 @@ class ServiceDetailsController extends GetxController {
     if (p != null) {
       final key = _productKey(p);
       final qty = sheetTempQty.value;
-      if (qty <= 0)
+      if (qty <= 0) {
         cartItems.remove(key);
-      else
+      } else {
         cartItems[key] = {
           "key": key,
           "title": p["title"],
@@ -215,6 +220,7 @@ class ServiceDetailsController extends GetxController {
           "quantity": qty,
           "raw": p,
         };
+      }
       cartItems.refresh();
     }
     Get.back();
@@ -232,12 +238,8 @@ class ServiceDetailsController extends GetxController {
     );
   }
 
-  // =========================================================
-  // ✅ 3. CHECKOUT LOGIC (Direct Login/Checkout Navigation)
-  // =========================================================
-
   void checkout() {
-    Get.back(); // Close Cart Sheet first
+    Get.back();
 
     if (cartItems.isEmpty) {
       Get.snackbar(
@@ -250,37 +252,31 @@ class ServiceDetailsController extends GetxController {
       return;
     }
 
-    // 🛑 যদি লগইন না থাকে -> লগইন পেজে যাবে
     if (!isLoggedIn.value) {
       Get.to(
-        () => const LoginView(),
-        arguments: {
-          'fromCheckout': true,
-        }, // লগইন শেষে এখানে ফেরার জন্য সিগন্যাল
+            () => const LoginView(),
+        arguments: {'fromCheckout': true},
         transition: Transition.cupertino,
       )?.then((result) async {
-        // ✅ লগইন করে ফিরে আসলে (result == true), চেকআউটে নিয়ে যাব
         if (result == true) {
-          await _checkLoginStatus(); // স্ট্যাটাস আপডেট
+          await _checkLoginStatus();
           if (isLoggedIn.value) {
             _navigateToCheckout();
           }
         }
       });
     } else {
-      // 🟢 যদি লগইন থাকে -> সরাসরি চেকআউট পেজে যাবে
       _navigateToCheckout();
     }
   }
 
-  // চেকআউট পেজে যাওয়ার হেল্পার ফাংশন
   void _navigateToCheckout() {
     Get.to(
-      () => const CheckoutView(),
+          () => const CheckoutView(),
       binding: BindingsBuilder(() {
         Get.put(CheckoutController());
       }),
-      arguments: {'cart': cartItems.values.toList()}, // কার্ট ডাটা পাঠানো হচ্ছে
+      arguments: {'cart': cartItems.values.toList()},
       transition: Transition.cupertino,
     );
   }

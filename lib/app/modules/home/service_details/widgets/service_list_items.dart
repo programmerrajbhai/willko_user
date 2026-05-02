@@ -15,12 +15,55 @@ class MainContentList extends StatelessWidget {
         return const Center(child: CircularProgressIndicator());
       }
 
-      final list = c.packages;
       final idx = c.selectedItemIndex.value;
+      final categories = c.items;
 
-      final currentTitle = (c.items.isNotEmpty && idx < c.items.length)
-          ? (c.items[idx]["title"] ?? "Services").toString()
-          : "All Services";
+      // ============================================
+      // 🔥 যদি "All" সিলেক্ট করা থাকে (Index -1)
+      // ============================================
+      if (idx == -1) {
+        if (categories.isEmpty) return _buildEmptyState();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: List.generate(categories.length, (i) {
+            final categoryTitle = (categories[i]["title"] ?? "Services").toString();
+            final categoryItems = c.getPackagesForIndex(i);
+
+            // যদি এই ক্যাটাগরিতে কোনো সার্ভিস না থাকে, তাহলে কিছুই দেখাবে না
+            if (categoryItems.isEmpty) return const SizedBox.shrink();
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 🔹 ক্যাটাগরির টাইটেল (যেমন: Servicing, Installation)
+                Padding(
+                  padding: EdgeInsets.only(bottom: 16, top: i == 0 ? 0 : 24),
+                  child: Text(
+                    categoryTitle,
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textBlack,
+                    ),
+                  ),
+                ),
+
+                // 🔹 ওই ক্যাটাগরির আন্ডারে থাকা সার্ভিসগুলোর লিস্ট
+                ...categoryItems.map((p) => ProductRow(p: p, c: c)),
+              ],
+            );
+          }),
+        );
+      }
+
+      // ============================================
+      // 🔥 যদি নির্দিষ্ট কোনো ক্যাটাগরি সিলেক্ট করা থাকে
+      // ============================================
+      final list = c.packages;
+      final currentTitle = (categories.isNotEmpty && idx >= 0 && idx < categories.length)
+          ? (categories[idx]["title"] ?? "Services").toString()
+          : "Services";
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,12 +122,18 @@ class ProductRow extends StatelessWidget {
         : [];
     final hasDiscount = (p["tag"] ?? "").toString().isNotEmpty;
 
-    // 🔥 FIX 1: ডাটাবেস থেকে ইমেজ ফাইলের নাম রিসিভ করে সার্ভারের বেস ইউআরএল যুক্ত করা হচ্ছে
-    final String imageName = (p['image'] ?? p['image_url'] ?? "").toString();
-    // ⚠️ "https://yourdomain.com/api/uploads/" এর জায়গায় আপনার সার্ভারের আসল লিঙ্কটি দিন
-    final String fullImageUrl = imageName.isNotEmpty
-        ? "https://yourdomain.com/api/uploads/$imageName"
-        : "https://ui-avatars.com/api/?name=Service&background=E0E0E0";
+    // 🔥 SMART IMAGE LOGIC
+    final String imageVal = (p['image'] ?? p['image_url'] ?? p['thumbnail'] ?? "").toString().trim();
+
+    String fullImageUrl = "";
+    if (imageVal.isEmpty) {
+      fullImageUrl = "https://ui-avatars.com/api/?name=Service&background=E0E0E0";
+    } else if (imageVal.startsWith('http')) {
+      fullImageUrl = imageVal; // সরাসরি URL থাকলে
+    } else {
+      // ⚠️ আপনার ডোমেইন বসান
+      fullImageUrl = "https://yourdomain.com/api/uploads/$imageVal";
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -138,7 +187,7 @@ class ProductRow extends StatelessWidget {
                         ),
 
                       Text(
-                        (p["title"] ?? "Service").toString(),
+                        (p["title"] ?? p["name"] ?? "Service").toString(),
                         style: GoogleFonts.poppins(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -166,7 +215,7 @@ class ProductRow extends StatelessWidget {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            "${p["rating"] ?? 4.8} (${p["reviews"] ?? '100+'} reviews)",
+                            "${p["rating"] ?? 4.8} (${p["reviews"] ?? p["reviews_count"] ?? '100+'} reviews)",
                             style: GoogleFonts.poppins(
                               fontSize: 11,
                               color: Colors.grey[600],
@@ -178,7 +227,7 @@ class ProductRow extends StatelessWidget {
 
                       const SizedBox(height: 12),
 
-                      // 🔥 FIX 2: SAR কে রিপ্লেস করে QR করা হয়েছে
+                      // QR Currency Fix
                       Text(
                         (p["priceStr"] ?? "QR 0").toString().replaceAll('SAR', 'QR'),
                         style: GoogleFonts.poppins(
@@ -189,10 +238,8 @@ class ProductRow extends StatelessWidget {
                       ),
 
                       const SizedBox(height: 8),
-                      // Details (Max 2 lines)
-                      ...shortDetails
-                          .take(2)
-                          .map(
+                      // Details
+                      ...shortDetails.take(2).map(
                             (d) => Padding(
                           padding: const EdgeInsets.only(bottom: 2),
                           child: Row(
@@ -226,61 +273,102 @@ class ProductRow extends StatelessWidget {
                 // Right Image & Button
                 Column(
                   children: [
-                    Stack(
-                      alignment: Alignment.bottomCenter,
-                      children: [
-                        // 🔥 FIX 3: ইমেজ লোডিং সিস্টেম আপডেট করা হয়েছে
-                        Container(
-                          height: 85,
-                          width: 85,
-                          margin: const EdgeInsets.only(bottom: 14),
-                          decoration: BoxDecoration(
+                    SizedBox(
+                      height: 100,
+                      width: 85,
+                      child: Stack(
+                        alignment: Alignment.topCenter,
+                        clipBehavior: Clip.none,
+                        children: [
+                          // 🔥 100% BULLETPROOF IMAGE LOADER 🔥
+                          ClipRRect(
                             borderRadius: BorderRadius.circular(12),
-                            color: Colors.grey[100],
-                            image: DecorationImage(
-                              image: NetworkImage(fullImageUrl), // ডাইনামিক ইমেজ ইউআরএল
+                            child: Image.network(
+                              fullImageUrl,
+                              width: 85,
+                              height: 85,
                               fit: BoxFit.cover,
-                              onError: (_, __) => {},
+                              headers: const {
+                                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
+                                "Accept": "image/webp,image/apng,image/*,*/*;q=0.8",
+                              },
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Container(
+                                  width: 85,
+                                  height: 85,
+                                  color: Colors.grey[200],
+                                  child: Center(
+                                    child: SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        value: loadingProgress.expectedTotalBytes != null
+                                            ? loadingProgress.cumulativeBytesLoaded /
+                                            (loadingProgress.expectedTotalBytes ?? 1)
+                                            : null,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                              errorBuilder: (context, error, stackTrace) {
+                                debugPrint("🔴 Image Error: $fullImageUrl -> $error");
+                                return Container(
+                                  width: 85,
+                                  height: 85,
+                                  color: Colors.grey[300],
+                                  child: const Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.broken_image, color: Colors.grey, size: 24),
+                                      SizedBox(height: 4),
+                                      Text("No Image", style: TextStyle(fontSize: 9, color: Colors.grey)),
+                                    ],
+                                  ),
+                                );
+                              },
                             ),
                           ),
-                        ),
 
-                        // Add Button Overlay
-                        Transform.translate(
-                          offset: const Offset(0, 0),
-                          child: InkWell(
-                            onTap: () => c.quickAdd(p),
-                            child: Container(
-                              width: 70,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: AppColors.primary.withOpacity(0.2),
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 5,
-                                    offset: const Offset(0, 2),
+                          // ADD বাটন
+                          Positioned(
+                            bottom: -5,
+                            child: InkWell(
+                              onTap: () => c.quickAdd(p),
+                              child: Container(
+                                width: 70,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: AppColors.primary.withOpacity(0.2),
                                   ),
-                                ],
-                              ),
-                              child: Center(
-                                child: Text(
-                                  "ADD +",
-                                  style: GoogleFonts.poppins(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 5,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    "ADD +",
+                                    style: GoogleFonts.poppins(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -292,4 +380,3 @@ class ProductRow extends StatelessWidget {
     );
   }
 }
-

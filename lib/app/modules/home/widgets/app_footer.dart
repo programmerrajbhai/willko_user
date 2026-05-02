@@ -1,9 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class AppFooter extends StatelessWidget {
   const AppFooter({super.key});
+
+  // 🚀 URL Launcher Function
+  Future<void> _launchURL(String urlString, String platform) async {
+    final Uri url = Uri.parse(urlString);
+    try {
+      if (!await launchUrl(
+        url,
+        mode: LaunchMode.externalApplication, // External Browser বা App এ ওপেন হবে
+      )) {
+        _showToast("Could not launch $platform");
+      }
+    } catch (e) {
+      _showToast("Error opening $platform");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,9 +75,21 @@ class AppFooter extends StatelessWidget {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    _SocialIcon(icon: Icons.facebook, onTap: () => _showToast("Facebook")),
-                    _SocialIcon(icon: Icons.camera_alt_outlined, onTap: () => _showToast("Instagram")),
-                    _SocialIcon(icon: Icons.video_library_rounded, onTap: () => _showToast("YouTube")),
+                    // 🔥 Facebook Original Icon (Fixed)
+                    _SocialIcon(
+                      icon: const FaIcon(FontAwesomeIcons.facebookF, color: Colors.white, size: 18),
+                      onTap: () => _launchURL("https://www.facebook.com/share/18bckq4Dt5/", "Facebook"),
+                    ),
+                    // 🔥 Instagram Original Icon (Fixed)
+                    _SocialIcon(
+                      icon: const FaIcon(FontAwesomeIcons.instagram, color: Colors.white, size: 18),
+                      onTap: () => _launchURL("https://www.instagram.com/willkoacservices2012?igsh=Z3VyOGlqOHVrYTMy", "Instagram"),
+                    ),
+                    // 🔥 YouTube Original Icon (Fixed)
+                    _SocialIcon(
+                      icon: const FaIcon(FontAwesomeIcons.youtube, color: Colors.white, size: 18),
+                      onTap: () => _launchURL("https://youtu.be/gYxaGLudrqs?si=KZ9g-HRatJCbm2Ia", "YouTube"),
+                    ),
                   ],
                 ),
               ],
@@ -82,7 +111,6 @@ class AppFooter extends StatelessWidget {
                   style: GoogleFonts.poppins(color: Colors.grey[600], fontSize: 12),
                   textAlign: TextAlign.center,
                 ),
-
               ],
             ),
           ),
@@ -91,10 +119,10 @@ class AppFooter extends StatelessWidget {
     );
   }
 
-  void _showToast(String platform) {
+  void _showToast(String message) {
     Get.snackbar(
-      "Social Link",
-      "Redirecting to $platform...",
+      "Notice",
+      message,
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: Colors.black87,
       colorText: Colors.white,
@@ -161,7 +189,7 @@ class _FooterLinkColumn extends StatelessWidget {
         ...links.map((link) => Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: InkWell(
-            onTap: link.onTap, // ✅ Added Click Action
+            onTap: link.onTap,
             child: Text(
               link.title,
               style: GoogleFonts.poppins(color: Colors.grey[400], fontSize: 13),
@@ -173,8 +201,9 @@ class _FooterLinkColumn extends StatelessWidget {
   }
 }
 
+// 🔥 _SocialIcon ক্লাসটি আপডেট করা হয়েছে
 class _SocialIcon extends StatelessWidget {
-  final IconData icon;
+  final Widget icon; // 💡 IconData এর বদলে সরাসরি Widget নেওয়া হচ্ছে
   final VoidCallback onTap;
   const _SocialIcon({required this.icon, required this.onTap});
 
@@ -191,14 +220,14 @@ class _SocialIcon extends StatelessWidget {
           shape: BoxShape.circle,
           border: Border.all(color: Colors.white.withOpacity(0.1)),
         ),
-        child: Icon(icon, color: Colors.white, size: 20),
+        child: Center(child: icon), // 💡 আইকনটিকে Center এ রাখা হয়েছে
       ),
     );
   }
 }
 
 // =======================================================
-// 🚀 DUMMY PAGE TO HANDLE CLICKS (Later replace with real API Data)
+// 🚀 DUMMY PAGE TO HANDLE CLICKS
 // =======================================================
 class CustomPageView extends StatelessWidget {
   final String title;

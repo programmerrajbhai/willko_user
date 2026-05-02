@@ -40,7 +40,7 @@ dependencies:
   intl:
   lottie: ^2.7.0
   image_picker: ^1.0.4
-  url_launcher:
+  url_launcher: ^6.3.2
   http: ^1.6.0
   shared_preferences: ^2.5.4
 
@@ -48,6 +48,7 @@ dependencies:
   google_maps_flutter: ^2.5.3  # ম্যাপ দেখানোর জন্য
   geolocator: ^11.0.0          # ইউজারের কারেন্ট লোকেশন নেওয়ার জন্য
   geocoding: ^3.0.0            # কো-অর্ডিনেট থেকে অ্যাড্রেস (টেক্সট) বের করার জন্য
+  font_awesome_flutter: ^11.0.0
 
 
 dev_dependencies:
