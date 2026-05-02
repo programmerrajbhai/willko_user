@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:willko_user/app/modules/home/home_controller.dart';
+import 'package:willko_user/app/modules/home/widgets/we_are_hiring_section.dart';
 import 'package:willko_user/utils/app_colors.dart';
 
 // --- AUTH VIEWS ---
@@ -37,18 +38,21 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
     {
       "image": "assets/images/service_man.jpg",
       "title": "Home services,\nredefined.",
-      "subtitle": "Book trusted professionals for cleaning, repair, and grooming.\nExperience luxury at your doorstep."
+      "subtitle":
+          "Book trusted professionals for cleaning, repair, and grooming.\nExperience luxury at your doorstep.",
     },
     {
       "image": "assets/images/hero_worker.jpeg",
       "title": "Expert repairs,\ninstant relief.",
-      "subtitle": "AC, plumbing, and electrical experts just a tap away.\nFast, reliable, and verified."
+      "subtitle":
+          "AC, plumbing, and electrical experts just a tap away.\nFast, reliable, and verified.",
     },
     {
       "image": "assets/images/service_man.jpg",
       "title": "Premium cleaning,\nsparkling homes.",
-      "subtitle": "Deep cleaning, sofa washing, and sanitization.\nYour home, cleaner than ever."
-    }
+      "subtitle":
+          "Deep cleaning, sofa washing, and sanitization.\nYour home, cleaner than ever.",
+    },
   ];
 
   @override
@@ -138,17 +142,26 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
 
           // --- STATIC HEADER ---
           Positioned(
-            top: 0, left: 0, right: 0,
+            top: 0,
+            left: 0,
+            right: 0,
             child: SafeArea(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 60, vertical: 10),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 16 : 60,
+                  vertical: 10,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const _BrandLogo(),
                     if (isMobile)
                       IconButton(
-                        icon: const Icon(Icons.menu_rounded, color: Colors.white, size: 32),
+                        icon: const Icon(
+                          Icons.menu_rounded,
+                          color: Colors.white,
+                          size: 32,
+                        ),
                         onPressed: () {
                           Scaffold.of(context).openEndDrawer();
                         },
@@ -163,7 +176,9 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
 
           // --- SLIDER DOT INDICATORS ---
           Positioned(
-            bottom: 10, left: 0, right: 0,
+            bottom: 10,
+            left: 0,
+            right: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(heroSlides.length, (index) {
@@ -173,7 +188,9 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
                   height: 6,
                   width: _currentPage == index ? 24 : 8,
                   decoration: BoxDecoration(
-                    color: _currentPage == index ? AppColors.primary : Colors.white54,
+                    color: _currentPage == index
+                        ? AppColors.primary
+                        : Colors.white54,
                     borderRadius: BorderRadius.circular(10),
                   ),
                 );
@@ -208,7 +225,10 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
                 const SizedBox(width: 10),
                 Text(
                   controller.userName.value,
-                  style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(width: 8),
               ],
@@ -218,39 +238,71 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
       }
       return Row(
         children: [
-          _NavButton(text: "Login", onTap: () => Get.to(() => const LoginView())),
+          _NavButton(
+            text: "Login",
+            onTap: () => Get.to(() => const LoginView()),
+          ),
           const SizedBox(width: 15),
-          _NavButton(text: "Sign Up", onTap: () => Get.to(() => const SignUpView()), isPrimary: true),
+          _NavButton(
+            text: "Sign Up",
+            onTap: () => Get.to(() => const SignUpView()),
+            isPrimary: true,
+          ),
         ],
       );
     });
   }
 
-  Widget _buildHeroText({required bool isMobile, required String title, required String subtitle}) {
+  Widget _buildHeroText({
+    required bool isMobile,
+    required String title,
+    required String subtitle,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 50, height: 4,
+          width: 50,
+          height: 4,
           decoration: BoxDecoration(
             color: AppColors.primary,
             borderRadius: BorderRadius.circular(2),
-            boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.5), blurRadius: 10, offset: const Offset(0, 2))],
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.5),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
         ),
         Text(
           title,
           style: GoogleFonts.playfairDisplay(
-            fontSize: isMobile ? 42 : 68, fontWeight: FontWeight.w800, color: Colors.white, height: 1.1, letterSpacing: 1.2,
-            shadows: [Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, offset: const Offset(0, 4))],
+            fontSize: isMobile ? 42 : 68,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+            height: 1.1,
+            letterSpacing: 1.2,
+            shadows: [
+              Shadow(
+                color: Colors.black.withOpacity(0.5),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 16),
         Text(
           subtitle,
           style: GoogleFonts.poppins(
-            fontSize: isMobile ? 14 : 18, color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w400, height: 1.6, letterSpacing: 0.5,
+            fontSize: isMobile ? 14 : 18,
+            color: Colors.white.withOpacity(0.9),
+            fontWeight: FontWeight.w400,
+            height: 1.6,
+            letterSpacing: 0.5,
           ),
         ),
         const SizedBox(height: 10),
@@ -271,7 +323,10 @@ class UrbanDrawer extends StatelessWidget {
 
     return Drawer(
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(40), bottomLeft: Radius.circular(40)),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(40),
+          bottomLeft: Radius.circular(40),
+        ),
       ),
       backgroundColor: const Color(0xFF121212),
       child: SafeArea(
@@ -283,28 +338,50 @@ class UrbanDrawer extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
               decoration: BoxDecoration(
                 color: const Color(0xFF1E1E1E),
-                borderRadius: const BorderRadius.only(topLeft: Radius.circular(40)),
-                border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.05))),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(40),
+                ),
+                border: Border(
+                  bottom: BorderSide(color: Colors.white.withOpacity(0.05)),
+                ),
               ),
-              child: Obx(() => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    radius: 35,
-                    backgroundColor: AppColors.primary.withOpacity(0.2),
-                    child: const Icon(Icons.person, size: 40, color: AppColors.primary),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    controller.isLoggedIn.value ? controller.userName.value : "Welcome, Guest!",
-                    style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
-                  ),
-                  if (!controller.isLoggedIn.value) ...[
-                    const SizedBox(height: 8),
-                    Text("Login to book services", style: GoogleFonts.poppins(color: Colors.grey, fontSize: 13)),
-                  ]
-                ],
-              )),
+              child: Obx(
+                () => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 35,
+                      backgroundColor: AppColors.primary.withOpacity(0.2),
+                      child: const Icon(
+                        Icons.person,
+                        size: 40,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      controller.isLoggedIn.value
+                          ? controller.userName.value
+                          : "Welcome, Guest!",
+                      style: GoogleFonts.poppins(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                    if (!controller.isLoggedIn.value) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        "Login to book services",
+                        style: GoogleFonts.poppins(
+                          color: Colors.grey,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ),
 
             const SizedBox(height: 10),
@@ -314,83 +391,129 @@ class UrbanDrawer extends StatelessWidget {
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 physics: const BouncingScrollPhysics(),
-                child: Obx(() => Column(
-                  children: [
-                    _DrawerTile(icon: Icons.home_rounded, title: "Home", onTap: () => Get.back()),
+                child: Obx(
+                  () => Column(
+                    children: [
+                      _DrawerTile(
+                        icon: Icons.home_rounded,
+                        title: "Home",
+                        onTap: () => Get.back(),
+                      ),
 
-                    if (controller.isLoggedIn.value) ...[
-                      // ✅ 1. Cart
-                      // _DrawerTile(icon: Icons.shopping_cart_outlined, title: "My Cart", onTap: () {
-                      //   Get.back();
-                      //   Get.to(() => const CartView());
-                      // }),
+                      if (controller.isLoggedIn.value) ...[
+                        // ✅ 1. Cart
+                        // _DrawerTile(icon: Icons.shopping_cart_outlined, title: "My Cart", onTap: () {
+                        //   Get.back();
+                        //   Get.to(() => const CartView());
+                        // }),
 
-                      // ✅ 2. Order History & Tracking
-                      _DrawerTile(icon: Icons.receipt_long_rounded, title: "My Orders & Tracking", onTap: () {
-                        Get.back();
-                        Get.to(() => const MyOrdersView());
-                      }),
+                        // ✅ 2. Order History & Tracking
+                        _DrawerTile(
+                          icon: Icons.receipt_long_rounded,
+                          title: "My Orders & Tracking",
+                          onTap: () {
+                            Get.back();
+                            Get.to(() => const MyOrdersView());
+                          },
+                        ),
 
-                      // ✅ 3. Notifications
-                      _DrawerTile(icon: Icons.notifications_none_rounded, title: "Notifications", onTap: () {
-                        Get.back();
-                        Get.to(() => const NotificationView());
-                      }),
+                        // ✅ 3. Notifications
+                        _DrawerTile(
+                          icon: Icons.notifications_none_rounded,
+                          title: "Notifications",
+                          onTap: () {
+                            Get.back();
+                            Get.to(() => const NotificationView());
+                          },
+                        ),
 
-                      // ✅ 4. Saved Addresses
-                      _DrawerTile(icon: Icons.location_on_outlined, title: "Saved Addresses", onTap: () {
-                        Get.back();
-                        Get.to(() => const AddressView());
-                      }),
+                        // ✅ 4. Saved Addresses
+                        _DrawerTile(
+                          icon: Icons.location_on_outlined,
+                          title: "Saved Addresses",
+                          onTap: () {
+                            Get.back();
+                            Get.to(() => const AddressView());
+                          },
+                        ),
 
-                      // ✅ 5. Profile
-                      _DrawerTile(icon: Icons.person_outline_rounded, title: "My Profile", onTap: () {
-                        Get.back();
-                        Get.to(() => const ProfileView());
-                      }),
-                    ] else ...[
-                      _DrawerTile(icon: Icons.login_rounded, title: "Login", onTap: () {
-                        Get.back();
-                        Get.to(() => const LoginView());
-                      }),
-                      _DrawerTile(icon: Icons.person_add_alt_1_rounded, title: "Sign Up", onTap: () {
-                        Get.back();
-                        Get.to(() => const SignUpView());
-                      }),
-                    ],
+                        // ✅ 5. Profile
+                        _DrawerTile(
+                          icon: Icons.person_outline_rounded,
+                          title: "My Profile",
+                          onTap: () {
+                            Get.back();
+                            Get.to(() => const ProfileView());
+                          },
+                        ),
+                      ] else ...[
+                        _DrawerTile(
+                          icon: Icons.login_rounded,
+                          title: "Login",
+                          onTap: () {
+                            Get.back();
+                            Get.to(() => const LoginView());
+                          },
+                        ),
+                        _DrawerTile(
+                          icon: Icons.person_add_alt_1_rounded,
+                          title: "Sign Up",
+                          onTap: () {
+                            Get.back();
+                            Get.to(() => const SignUpView());
+                          },
+                        ),
+                      ],
 
-                    const Divider(color: Colors.white12, height: 30),
-
-                    // ✅ 6. Settings
-                    _DrawerTile(icon: Icons.settings_outlined, title: "Settings", onTap: () {
-                      Get.back();
-                      Get.to(() => const SettingsView());
-                    }),
-
-                    // ✅ 7. Help & Support
-                    _DrawerTile(icon: Icons.support_agent_rounded, title: "Help & Support", onTap: () {
-                      Get.back();
-                      Get.snackbar(
-                        "Help & Support",
-                        "Live chat will be available soon!",
-                        backgroundColor: Colors.black87, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM, margin: const EdgeInsets.all(20),
-                      );
-                    }),
-
-                    // 💎 8. We Are Hiring
-                    _HiringTile(),
-
-                    if (controller.isLoggedIn.value) ...[
                       const Divider(color: Colors.white12, height: 30),
-                      // ✅ 9. Logout
-                      _DrawerTile(icon: Icons.logout_rounded, title: "Logout", isDestructive: true, onTap: () {
-                        Get.back();
-                        controller.logout();
-                      }),
+
+                      // ✅ 6. Settings
+                      _DrawerTile(
+                        icon: Icons.settings_outlined,
+                        title: "Settings",
+                        onTap: () {
+                          Get.back();
+                          Get.to(() => const SettingsView());
+                        },
+                      ),
+
+                      // ✅ 7. Help & Support
+                      _DrawerTile(
+                        icon: Icons.support_agent_rounded,
+                        title: "Help & Support",
+                        onTap: () {
+                          Get.back();
+                          Get.snackbar(
+                            "Help & Support",
+                            "Live chat will be available soon!",
+                            backgroundColor: Colors.black87,
+                            colorText: Colors.white,
+                            snackPosition: SnackPosition.BOTTOM,
+                            margin: const EdgeInsets.all(20),
+                          );
+                        },
+                      ),
+
+                      // 💎 8. We Are Hiring
+                      HiringSection(),
+
+                      if (controller.isLoggedIn.value) ...[
+                        const Divider(color: Colors.white12, height: 30),
+                        // ✅ 9. Logout
+                        _DrawerTile(
+                          icon: Icons.logout_rounded,
+                          title: "Logout",
+                          isDestructive: true,
+                          onTap: () {
+                            Get.back();
+                            controller.logout();
+                          },
+                        ),
+                      ],
+                      const SizedBox(height: 30),
                     ],
-                    const SizedBox(height: 30),
-                  ],
-                )),
+                  ),
+                ),
               ),
             ),
           ],
@@ -408,7 +531,10 @@ class _DrawerTile extends StatelessWidget {
   final bool isDestructive;
 
   const _DrawerTile({
-    required this.icon, required this.title, required this.onTap, this.isDestructive = false,
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.isDestructive = false,
   });
 
   @override
@@ -417,7 +543,14 @@ class _DrawerTile extends StatelessWidget {
     return ListTile(
       onTap: onTap,
       leading: Icon(icon, color: color.withOpacity(0.8), size: 24),
-      title: Text(title, style: GoogleFonts.poppins(color: color, fontWeight: FontWeight.w500, fontSize: 15)),
+      title: Text(
+        title,
+        style: GoogleFonts.poppins(
+          color: color,
+          fontWeight: FontWeight.w500,
+          fontSize: 15,
+        ),
+      ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       hoverColor: Colors.white.withOpacity(0.05),
@@ -432,21 +565,53 @@ class _HiringTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [AppColors.primary.withOpacity(0.8), AppColors.primary.withOpacity(0.4)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withOpacity(0.8),
+            AppColors.primary.withOpacity(0.4),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.primary.withOpacity(0.5)),
       ),
       child: ListTile(
         onTap: () {
           Get.back();
-          Get.snackbar("We are Hiring!", "Redirecting to careers page...", backgroundColor: AppColors.primary, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM, margin: const EdgeInsets.all(20), borderRadius: 12);
+          Get.snackbar(
+            "We are Hiring!",
+            "Redirecting to careers page...",
+            backgroundColor: AppColors.primary,
+            colorText: Colors.white,
+            snackPosition: SnackPosition.BOTTOM,
+            margin: const EdgeInsets.all(20),
+            borderRadius: 12,
+          );
         },
         leading: const Icon(Icons.work_rounded, color: Colors.white, size: 24),
-        title: Text("We are hiring!", style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+        title: Text(
+          "We are hiring!",
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 15,
+          ),
+        ),
         trailing: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-          child: Text("NEW", style: GoogleFonts.poppins(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.w800)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            "NEW",
+            style: GoogleFonts.poppins(
+              color: AppColors.primary,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
         ),
       ),
     );
@@ -462,11 +627,36 @@ class _BrandLogo extends StatelessWidget {
       children: [
         Container(
           padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 4))]),
-          child: const Text("W", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Colors.black)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: const Text(
+            "W",
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 20,
+              color: Colors.black,
+            ),
+          ),
         ),
         const SizedBox(width: 12),
-        Text("WILLKO", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 22, letterSpacing: 1.5)),
+        Text(
+          "WILLKO",
+          style: GoogleFonts.montserrat(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+            fontSize: 22,
+            letterSpacing: 1.5,
+          ),
+        ),
       ],
     );
   }
@@ -476,7 +666,11 @@ class _NavButton extends StatelessWidget {
   final String text;
   final VoidCallback onTap;
   final bool isPrimary;
-  const _NavButton({required this.text, required this.onTap, this.isPrimary = false});
+  const _NavButton({
+    required this.text,
+    required this.onTap,
+    this.isPrimary = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -485,8 +679,19 @@ class _NavButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 12),
-        decoration: BoxDecoration(color: isPrimary ? AppColors.primary : Colors.transparent, borderRadius: BorderRadius.circular(10), border: isPrimary ? null : Border.all(color: Colors.white54)),
-        child: Text(text, style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+        decoration: BoxDecoration(
+          color: isPrimary ? AppColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          border: isPrimary ? null : Border.all(color: Colors.white54),
+        ),
+        child: Text(
+          text,
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
       ),
     );
   }

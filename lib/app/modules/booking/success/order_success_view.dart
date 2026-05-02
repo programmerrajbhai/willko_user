@@ -4,20 +4,14 @@ import 'package:lottie/lottie.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../utils/app_colors.dart';
 import '../../home/home_view.dart';
-// import '../../order/my_orders_view.dart'; // যদি অর্ডার হিস্ট্রি পেজ থাকে
+import '../../order/my_orders_view.dart'; // 🚀 আনকমেন্ট করা হয়েছে
 
 class OrderSuccessView extends StatelessWidget {
   const OrderSuccessView({super.key});
 
   @override
   Widget build(BuildContext context) {
-/// Builds a success screen for booking a service.
-///
-/// This screen displays a confirmation message with an animation,
-/// success text and buttons to view order details and go back to home.
-///
-/// Called when the booking process is completed successfully.
-    // ডামি অর্ডার আইডি জেনারেট করা (লজিক অনুযায়ী বসাবেন)
+    // ডামি অর্ডার আইডি জেনারেট করা
     final String orderId = "#WK-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}";
 
     return Scaffold(
@@ -30,14 +24,14 @@ class OrderSuccessView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 20),
-              
+
               // --- 1. Animation Section ---
               Center(
                 child: SizedBox(
                   height: 180,
                   width: 180,
                   child: Lottie.asset(
-                    'assets/animations/success.json', 
+                    'assets/animations/success.json',
                     repeat: false,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
@@ -103,16 +97,15 @@ class OrderSuccessView extends StatelessWidget {
               const SizedBox(height: 40),
 
               // --- 4. Action Buttons ---
-              
-              // Track Order / View Details
+
+              // 🚀 View Booking Details (FIXED)
               SizedBox(
                 width: double.infinity,
                 height: 55,
                 child: OutlinedButton(
                   onPressed: () {
-                    // TODO: Navigate to Order History/Details
-                    // Get.to(() => const MyOrdersView()); 
-                    Get.snackbar("Info", "Order details page coming soon!");
+                    // 🔥 MyOrdersView পেজে নেভিগেট করার লজিক ঠিক করা হয়েছে
+                    Get.off(() => const MyOrdersView());
                   },
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: AppColors.primary, width: 1.5),
@@ -122,9 +115,9 @@ class OrderSuccessView extends StatelessWidget {
                   child: Text(
                     "View Booking Details",
                     style: GoogleFonts.manrope(
-                      fontSize: 16, 
-                      fontWeight: FontWeight.w700, 
-                      color: AppColors.primary
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary
                     ),
                   ),
                 ),
@@ -149,9 +142,9 @@ class OrderSuccessView extends StatelessWidget {
                   child: Text(
                     "Back to Home",
                     style: GoogleFonts.manrope(
-                      fontSize: 16, 
-                      fontWeight: FontWeight.w700, 
-                      color: Colors.white
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white
                     ),
                   ),
                 ),
