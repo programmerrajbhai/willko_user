@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:flutter/foundation.dart'; // Web Gestures এর জন্য
-import 'package:flutter/gestures.dart'; // EagerGestureRecognizer এর জন্য
-import '../../../../utils/app_colors.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'address_controller.dart';
 
 class AddAddressView extends GetView<AddressController> {
@@ -33,7 +32,7 @@ class AddAddressView extends GetView<AddressController> {
       ),
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600), // Web Responsive Centered
+          constraints: const BoxConstraints(maxWidth: 600),
           child: Form(
             key: controller.formKey,
             child: Column(
@@ -52,9 +51,10 @@ class AddAddressView extends GetView<AddressController> {
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
-                              Obx(() => GoogleMap(
+                              // 🚨 FIX: Removed Obx from here. Map only builds ONCE!
+                              GoogleMap(
                                 initialCameraPosition: CameraPosition(
-                                  target: controller.currentPosition.value,
+                                  target: controller.currentPosition.value, // Read only once
                                   zoom: 15,
                                 ),
                                 onMapCreated: controller.onMapCreated,
@@ -64,11 +64,10 @@ class AddAddressView extends GetView<AddressController> {
                                 mapToolbarEnabled: false,
                                 onCameraMove: controller.onCameraMove,
                                 onCameraIdle: controller.onCameraIdle,
-                                // 🚀 Web & Nested Scroll Fix:
                                 gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
                                   Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
                                 },
-                              )),
+                              ),
 
                               // Center Custom Pin
                               const IgnorePointer(
@@ -78,7 +77,7 @@ class AddAddressView extends GetView<AddressController> {
                                 ),
                               ),
 
-                              // Loading Indicator
+                              // Loading Indicator (This stays in Obx)
                               Obx(() {
                                 if (controller.isMapLoading.value) {
                                   return Container(
@@ -122,7 +121,7 @@ class AddAddressView extends GetView<AddressController> {
                                       label: "Customer Name",
                                       icon: Icons.person_outline_rounded,
                                       hint: "e.g. Raj Ahmad",
-                                      validator: (v) => (v == null || v.isEmpty) ? "Name is required" : null,
+                                      validator: (v) => (v == null || v.trim().isEmpty) ? "Name is required" : null,
                                     ),
                                     const SizedBox(height: 16),
                                     _AnimatedTextField(
@@ -131,7 +130,7 @@ class AddAddressView extends GetView<AddressController> {
                                       icon: Icons.phone_android_rounded,
                                       hint: "01xxxxxxxxx",
                                       inputType: TextInputType.phone,
-                                      validator: (v) => (v == null || v.length < 11) ? "Valid number required" : null,
+                                      validator: (v) => (v == null || v.trim().length < 9) ? "Valid number required" : null,
                                     ),
                                   ],
                                 ),
@@ -151,7 +150,7 @@ class AddAddressView extends GetView<AddressController> {
                                       icon: Icons.map_outlined,
                                       hint: "Pin location on map...",
                                       maxLines: 2,
-                                      validator: (v) => (v == null || v.isEmpty) ? "Location is required" : null,
+                                      validator: (v) => (v == null || v.trim().isEmpty) ? "Location is required" : null,
                                     ),
                                     const SizedBox(height: 16),
                                     Row(
@@ -162,7 +161,7 @@ class AddAddressView extends GetView<AddressController> {
                                             label: "Building No.",
                                             icon: Icons.apartment_rounded,
                                             hint: "e.g. 56",
-                                            validator: (v) => (v == null || v.isEmpty) ? "Required" : null,
+                                            validator: (v) => (v == null || v.trim().isEmpty) ? "Required" : null,
                                           ),
                                         ),
                                         const SizedBox(width: 16),
@@ -172,7 +171,7 @@ class AddAddressView extends GetView<AddressController> {
                                             label: "Flat No.",
                                             icon: Icons.door_front_door_outlined,
                                             hint: "e.g. 4-B",
-                                            validator: (v) => (v == null || v.isEmpty) ? "Required" : null,
+                                            validator: (v) => (v == null || v.trim().isEmpty) ? "Required" : null,
                                           ),
                                         ),
                                       ],

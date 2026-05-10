@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.10.3
+  sdk: ">=3.9.2 <4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -49,6 +49,29 @@ dependencies:
   geolocator: ^11.0.0          # ইউজারের কারেন্ট লোকেশন নেওয়ার জন্য
   geocoding: ^3.0.0            # কো-অর্ডিনেট থেকে অ্যাড্রেস (টেক্সট) বের করার জন্য
   font_awesome_flutter: ^11.0.0
+
+
+
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.3.1 # Splash screen-er jonno
+
+
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/app_logo.png"
+  min_sdk_android: 21
+  remove_alpha_ios: true
+
+flutter_native_splash:
+  color: "#ffffff" # Background color
+  image: assets/images/splash_logo.png
+  android_12:
+    image: assets/images/splash_logo.png
+    color: "#ffffff"
+  web: false # Web-er jonno amra custom splash bebohar korbo
 
 
 dev_dependencies:

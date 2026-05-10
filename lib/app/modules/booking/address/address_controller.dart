@@ -14,7 +14,7 @@ import 'add_address_view.dart';
 class AddressController extends GetxController {
   final addressList = <AddressModel>[].obs;
   final isLoading = true.obs;
-  final isMapLoading = true.obs;
+  final isMapLoading = false.obs; // শুরুতে ফলস থাকবে
   final isSaving = false.obs;
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
@@ -28,7 +28,6 @@ class AddressController extends GetxController {
   final selectedType = "Home".obs;
 
   GoogleMapController? mapController;
-  // ডিফল্ট লোকেশন (ঢাকা)
   var currentPosition = const LatLng(23.8103, 90.4125).obs;
 
   @override
@@ -40,7 +39,7 @@ class AddressController extends GetxController {
     buildingController = TextEditingController();
     flatController = TextEditingController();
 
-    loadAddresses(); // অ্যাপ ওপেন হলেই ক্যাশ থেকে অ্যাড্রেস লোড হবে
+    loadAddresses();
   }
 
   // ==========================================
@@ -78,6 +77,8 @@ class AddressController extends GetxController {
 
   void onMapCreated(GoogleMapController controller) {
     mapController = controller;
+    // ম্যাপ তৈরি হওয়ার সাথে সাথেই ইউজারের কারেন্ট লোকেশনে নিয়ে যাবে
+    getUserCurrentLocation();
   }
 
   void onCameraIdle() {
@@ -86,6 +87,7 @@ class AddressController extends GetxController {
 
   void onCameraMove(CameraPosition position) {
     currentPosition.value = position.target;
+    // 🚨 এখানে locationNameController.text = "Loading..." দিলে ইউজার বুঝতে পারবে যে ম্যাপ ড্র্যাগ হচ্ছে
   }
 
   Future<void> getUserCurrentLocation() async {
@@ -95,7 +97,7 @@ class AddressController extends GetxController {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        if (!kIsWeb) Get.snackbar("Notice", "Please enable location services.");
+        if (!kIsWeb) Get.snackbar("Notice", "Please enable GPS location services.");
         isMapLoading.value = false;
         return;
       }
@@ -122,7 +124,6 @@ class AddressController extends GetxController {
       debugPrint("Location error: $e");
     } finally {
       isMapLoading.value = false;
-      HapticFeedback.heavyImpact();
     }
   }
 
@@ -135,69 +136,38 @@ class AddressController extends GetxController {
         Placemark place = placemarks[0];
         List<String> addressParts = [];
 
-        // ✅ Helper Function: হাবিজাবি কোড এবং Unnamed Road ফিল্টার করার জন্য
         bool isValid(String? text) {
           if (text == null || text.trim().isEmpty) return false;
-          // Plus Code (যেমন: 7VFH+GHP) ব্লক করা
           if (text.contains('+') && !text.contains(' ')) return false;
-          // "Unnamed Road" ব্লক করা
           if (text.toLowerCase().contains('unnamed road')) return false;
           return true;
         }
 
-        // ১. রাস্তার নাম (Thoroughfare)
-        if (isValid(place.thoroughfare)) {
-          addressParts.add(place.thoroughfare!);
-        }
-
-        // ২. এলাকার নাম (Sub Locality) - যেমন: Banani, Mirpur
-        if (isValid(place.subLocality)) {
-          addressParts.add(place.subLocality!);
-        }
-
-        // ৩. শহরের নাম (Locality) - যেমন: Dhaka
-        if (isValid(place.locality)) {
-          addressParts.add(place.locality!);
-        }
-
-        // ৪. জেলার নাম (Sub Administrative Area)
+        if (isValid(place.thoroughfare)) addressParts.add(place.thoroughfare!);
+        if (isValid(place.subLocality)) addressParts.add(place.subLocality!);
+        if (isValid(place.locality)) addressParts.add(place.locality!);
         if (isValid(place.subAdministrativeArea) && !addressParts.contains(place.subAdministrativeArea)) {
           addressParts.add(place.subAdministrativeArea!);
         }
-
-        // ৫. বিল্ডিং বা জায়গার নাম (যদি রাস্তা বা এলাকার নামের সাথে না মিলে)
-        if (isValid(place.name) &&
-            !addressParts.contains(place.name) &&
-            place.name != place.street) {
-          addressParts.insert(0, place.name!); // এটি স্পেসিফিক নাম তাই প্রথমে রাখবো
+        if (isValid(place.name) && !addressParts.contains(place.name) && place.name != place.street) {
+          addressParts.insert(0, place.name!);
         }
-
-        // ৬. বিভাগ (Administrative Area)
         if (isValid(place.administrativeArea) && !addressParts.contains(place.administrativeArea)) {
           addressParts.add(place.administrativeArea!);
         }
+        if (isValid(place.country)) addressParts.add(place.country!);
 
-        // ৭. পোস্টাল কোড (Optional: রাখতে চাইলে আনকমেন্ট করতে পারেন)
-        // if (isValid(place.postalCode)) addressParts.add(place.postalCode!);
-
-        // ৮. দেশ (Country)
-        if (isValid(place.country)) {
-          addressParts.add(place.country!);
-        }
-
-        // ডুপ্লিকেট শব্দগুলো রিমুভ করে কমা দিয়ে সাজানো
         String fullAddress = addressParts.toSet().join(', ');
 
-        // যদি কোনো কারণে সবকিছু ফিল্টার হয়ে খালি হয়ে যায়, তবে কোঅর্ডিনেট দেখাবে না, বরং 'Unknown Location' দেখাবে
         if (fullAddress.trim().isEmpty) {
           fullAddress = "Selected Location";
         }
 
-        // টেক্সট ফিল্ডে সেট করা
         locationNameController.text = fullAddress;
       }
     } catch (e) {
       debugPrint("Address fetch error: $e");
+      locationNameController.text = "Unknown Location";
     }
   }
 
@@ -290,7 +260,7 @@ class AddressController extends GetxController {
   void goToAddAddress() {
     _clearForm();
     Get.to(() => const AddAddressView());
-    getUserCurrentLocation();
+    // Get.to() হওয়ার পর ম্যাপ রেডি হলে onMapCreated থেকে কল হবে, তাই এখানে ডাবল কল করার দরকার নেই
   }
 
   void _clearForm() {
