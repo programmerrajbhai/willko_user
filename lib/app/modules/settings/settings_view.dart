@@ -4,6 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../utils/app_colors.dart';
 import 'settings_controller.dart';
 
+// ========================================================
+// 1. MAIN SETTINGS VIEW
+// ========================================================
 class SettingsView extends StatelessWidget {
   const SettingsView({super.key});
 
@@ -12,7 +15,7 @@ class SettingsView extends StatelessWidget {
     final controller = Get.put(SettingsController());
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC), // প্রিমিয়াম গ্রে ব্যাকগ্রাউন্ড
+      backgroundColor: const Color(0xFFF7F9FC),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0.5,
@@ -22,7 +25,7 @@ class SettingsView extends StatelessWidget {
         ),
         title: Text(
           "Settings",
-          style: GoogleFonts.poppins(color: Colors.black87, fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 18),
         ),
         centerTitle: true,
       ),
@@ -37,34 +40,6 @@ class SettingsView extends StatelessWidget {
 
             _buildSettingsContainer(
               children: [
-                // Language
-                Obx(() => ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: Colors.blue.shade50, shape: BoxShape.circle),
-                    child: const Icon(Icons.language, color: Colors.blue),
-                  ),
-                  title: Text("Language", style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
-                  subtitle: Text(controller.selectedLanguage.value, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey)),
-                  trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.grey),
-                  onTap: controller.changeLanguage,
-                )),
-                Divider(height: 1, color: Colors.grey.shade100),
-
-                // Dark Mode
-                Obx(() => SwitchListTile(
-                  secondary: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: Colors.purple.shade50, shape: BoxShape.circle),
-                    child: const Icon(Icons.dark_mode_outlined, color: Colors.purple),
-                  ),
-                  title: Text("Dark Mode", style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
-                  value: controller.isDarkMode.value,
-                  onChanged: controller.toggleTheme,
-                  activeColor: AppColors.primary,
-                )),
-                Divider(height: 1, color: Colors.grey.shade100),
-
                 // Notifications
                 Obx(() => SwitchListTile(
                   secondary: Container(
@@ -81,7 +56,7 @@ class SettingsView extends StatelessWidget {
             ),
             const SizedBox(height: 25),
 
-            // --- Section 2: Support ---
+            // --- Section 2: Support & Legal ---
             _buildSectionHeader("Support & Legal"),
 
             _buildSettingsContainer(
@@ -113,11 +88,11 @@ class SettingsView extends StatelessWidget {
                   ),
                   title: Text("Privacy Policy", style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
                   trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.grey),
-                  onTap: () {}, // Open WebView
+                  onTap: () => Get.to(() => const PrivacyPolicyView()),
                 ),
                 Divider(height: 1, color: Colors.grey.shade100),
 
-                // Terms
+                // Terms and Conditions
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
@@ -126,7 +101,7 @@ class SettingsView extends StatelessWidget {
                   ),
                   title: Text("Terms & Conditions", style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
                   trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.grey),
-                  onTap: () {},
+                  onTap: () => Get.to(() => const TermsConditionsView()),
                 ),
               ],
             ),
@@ -138,7 +113,7 @@ class SettingsView extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    "Urban Service App",
+                    "Willko Service Platform",
                     style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.grey.shade500),
                   ),
                   const SizedBox(height: 5),
@@ -156,19 +131,12 @@ class SettingsView extends StatelessWidget {
     );
   }
 
-  // --- Helper Widgets ---
-
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12, left: 5),
       child: Text(
         title.toUpperCase(),
-        style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey.shade600,
-            letterSpacing: 1.2
-        ),
+        style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey.shade600, letterSpacing: 1.2),
       ),
     );
   }
@@ -178,15 +146,91 @@ class SettingsView extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.grey.withOpacity(0.05),
-              blurRadius: 15,
-              offset: const Offset(0, 5)
-          )
-        ],
+        boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 5))],
       ),
       child: Column(children: children),
+    );
+  }
+}
+
+// ========================================================
+// 2. PRIVACY POLICY VIEW (Same File)
+// ========================================================
+class PrivacyPolicyView extends StatelessWidget {
+  const PrivacyPolicyView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87),
+          onPressed: () => Get.back(),
+        ),
+        title: Text("Privacy Policy", style: GoogleFonts.poppins(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 18)),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Privacy Policy", style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            Text("Last updated: May 2026\n\nYour privacy is critically important to us. At Willko Service, we have a few fundamental principles:\n\n"
+                "1. Information We Collect\nWe only collect information about you if we have a reason to do so, such as providing our services, communicating with you, or making our services better.\n\n"
+                "2. How We Use Information\nWe use the information we collect to provide our services to you, to communicate with you, and to improve our platform. We never sell your personal data.\n\n"
+                "3. Security\nWhile no online service is 100% secure, we work very hard to protect information about you against unauthorized access, use, alteration, or destruction.\n\n"
+                "4. Changes to Policy\nWe may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page.",
+              style: GoogleFonts.manrope(fontSize: 14, color: Colors.grey.shade800, height: 1.6),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ========================================================
+// 3. TERMS & CONDITIONS VIEW (Same File)
+// ========================================================
+class TermsConditionsView extends StatelessWidget {
+  const TermsConditionsView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87),
+          onPressed: () => Get.back(),
+        ),
+        title: Text("Terms & Conditions", style: GoogleFonts.poppins(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 18)),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Terms & Conditions", style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            Text("Welcome to Willko Service!\n\nThese terms and conditions outline the rules and regulations for the use of our app and services.\n\n"
+                "1. Acceptance of Terms\nBy accessing this app we assume you accept these terms and conditions. Do not continue to use Willko Service if you do not agree to take all of the terms and conditions stated on this page.\n\n"
+                "2. Service Booking\nWhen booking a service through our platform, you agree to provide accurate information and ensure your availability at the scheduled time.\n\n"
+                "3. Payments & Cancellations\nPayments are processed securely. Cancellations must be made within the allowed timeframe to avoid penalty charges.\n\n"
+                "4. User Conduct\nUsers must treat service providers with respect. Any form of harassment or illegal activity will result in immediate account termination.",
+              style: GoogleFonts.manrope(fontSize: 14, color: Colors.grey.shade800, height: 1.6),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
