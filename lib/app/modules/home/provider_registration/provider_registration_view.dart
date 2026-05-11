@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../../../utils/app_colors.dart';
+// আপনার এপিআই সার্ভিসের লোকেশন ঠিক থাকলে নিচের লাইনটি কাজ করবে
 import '../../../data/services/api_service.dart';
 
 class ProviderRegistrationView extends StatefulWidget {
@@ -16,63 +17,76 @@ class ProviderRegistrationView extends StatefulWidget {
 class _ProviderRegistrationViewState extends State<ProviderRegistrationView> {
   final _formKey = GlobalKey<FormState>();
 
-  // ✅ TextEditingControllers (QID সহ)
   final TextEditingController nameController = TextEditingController();
   final TextEditingController whatsappController = TextEditingController();
-  final TextEditingController qidController = TextEditingController(); // 🔥 New QID Controller
+  final TextEditingController qidController = TextEditingController();
   final TextEditingController expController = TextEditingController();
+  final TextEditingController categoryController = TextEditingController(); // 🔥 ড্রপডাউনের বদলে নতুন ফিল্ড
 
-  String? selectedCategory;
   bool _isSubmitting = false;
 
-  final List<String> categories = [
-    "AC Servicing",
-    "Installation",
-    "Gas Refill",
-    "Cleaning",
-    "Plumbing"
-  ];
-
-  // ✅ ডাটাবেসে ডাটা সেভ করার ফাংশন
+  // ✅ ১০০% সেফ এবং বুলেটপ্রুফ সাবমিট ফাংশন
   Future<void> _submitApplication() async {
+    // কিবোর্ড হাইড করা
+    FocusScope.of(context).unfocus();
+
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSubmitting = true);
 
     try {
+      final Map<String, String> requestBody = {
+        "full_name": nameController.text.trim(),
+        "whatsapp_number": whatsappController.text.trim(),
+        "qid_number": qidController.text.trim(),
+        "category": categoryController.text.trim(), // 🔥 ইউজারের টাইপ করা ডাটা
+        "experience": expController.text.trim(),
+      };
+
+      print("📤 Sending Data: $requestBody"); // Debugging
+
       final response = await http.post(
-        Uri.parse("${ApiService.baseUrl}/user/auth/register_provider.11"),
-        body: {
-          "full_name": nameController.text.trim(),
-          "whatsapp_number": whatsappController.text.trim(),
-          "qid_number": qidController.text.trim(), // 🔥 QID Data Sent to Backend
-          "category": selectedCategory,
-          "experience": expController.text.trim(),
-        },
-      ).timeout(const Duration(seconds: 15)); // Timeout added for safety
+        Uri.parse("https://willkoservices.com/WillkoServiceApi/api/user/auth/register_provider.php"),
+        body: requestBody,
+      ).timeout(const Duration(seconds: 15));
 
-      final result = jsonDecode(response.body);
+      print("📥 Response Status: ${response.statusCode}"); // Debugging
+      print("📥 Response Body: ${response.body}"); // Debugging
 
-      if (response.statusCode == 200 && result['status'] == 'success') {
-        _showDoneDialog();
-      } else {
+      if (response.statusCode != 200) {
         Get.snackbar(
-          "Submission Failed",
-          result['message'] ?? "An error occurred",
+          "Server Error ${response.statusCode}",
+          "Could not connect to the server. Check API URL.",
           backgroundColor: Colors.redAccent,
           colorText: Colors.white,
           snackPosition: SnackPosition.BOTTOM,
-          margin: const EdgeInsets.all(16),
+        );
+        setState(() => _isSubmitting = false);
+        return;
+      }
+
+      final result = jsonDecode(response.body);
+
+      if (result['status'] == 'success') {
+        _showModernDoneDialog(); // 🔥 মডার্ন ডায়লগ কল করা হলো
+      } else {
+        Get.snackbar(
+          "Submission Failed",
+          result['message'] ?? "Unknown error from server",
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
         );
       }
     } catch (e) {
+      print("❌ Crash Error: $e");
+
       Get.snackbar(
-        "Connection Error",
-        "Please check your internet connection and try again.",
+        "Oops!",
+        "Something went wrong. Check your internet or API.",
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
-        margin: const EdgeInsets.all(16),
       );
     } finally {
       setState(() => _isSubmitting = false);
@@ -83,8 +97,9 @@ class _ProviderRegistrationViewState extends State<ProviderRegistrationView> {
   void dispose() {
     nameController.dispose();
     whatsappController.dispose();
-    qidController.dispose(); // 🔥 Dispose QID controller
+    qidController.dispose();
     expController.dispose();
+    categoryController.dispose();
     super.dispose();
   }
 
@@ -125,7 +140,7 @@ class _ProviderRegistrationViewState extends State<ProviderRegistrationView> {
               ),
 
               const SizedBox(height: 16),
-              _buildInputLabel("Qatar ID (QID)"), // 🔥 QID UI Field
+              _buildInputLabel("Qatar ID (QID)"),
               _buildTextField(
                   controller: qidController,
                   hint: "Enter your 11-digit QID number",
@@ -148,14 +163,12 @@ class _ProviderRegistrationViewState extends State<ProviderRegistrationView> {
               ),
 
               const SizedBox(height: 16),
-              _buildInputLabel("Select Category"),
-              DropdownButtonFormField<String>(
-                value: selectedCategory,
-                style: GoogleFonts.poppins(color: Colors.black, fontSize: 14),
-                decoration: _inputDecoration("Choose your skill", Icons.category_outlined),
-                items: categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-                onChanged: (val) => setState(() => selectedCategory = val),
-                validator: (v) => v == null ? "Required" : null,
+              _buildInputLabel("Service Category"),
+              // 🔥 ড্রপডাউনের বদলে লেখার বক্স
+              _buildTextField(
+                  controller: categoryController,
+                  hint: "Ex: AC Servicing, Cleaning, Plumbing",
+                  icon: Icons.category_outlined
               ),
 
               const SizedBox(height: 16),
@@ -169,7 +182,7 @@ class _ProviderRegistrationViewState extends State<ProviderRegistrationView> {
               const SizedBox(height: 40),
               SizedBox(
                 width: double.infinity,
-                height: 55, // Height slightly increased for premium look
+                height: 55,
                 child: ElevatedButton(
                   onPressed: _isSubmitting ? null : _submitApplication,
                   style: ElevatedButton.styleFrom(
@@ -244,20 +257,76 @@ class _ProviderRegistrationViewState extends State<ProviderRegistrationView> {
     );
   }
 
-  void _showDoneDialog() {
-    Get.defaultDialog(
-      title: "Success!",
-      titleStyle: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.green),
-      middleText: "Your application has been submitted. Our team will verify your QID and contact you on WhatsApp soon.",
-      middleTextStyle: GoogleFonts.poppins(fontSize: 13),
-      textConfirm: "Back to Home",
-      confirmTextColor: Colors.white,
-      buttonColor: AppColors.primary,
-      radius: 16,
-      onConfirm: () {
-        Get.back(); // Close Dialog
-        Get.back(); // Go back to Home
-      },
+  // ========================================================
+  // 🔥 SMART & MODERN SUCCESS ALERT DIALOG 🔥
+  // ========================================================
+  void _showModernDoneDialog() {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: const [
+              BoxShadow(color: Colors.black26, blurRadius: 20, offset: Offset(0, 10)),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Premium Check Icon Setup
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check_circle, color: Colors.green, size: 60),
+              ),
+              const SizedBox(height: 24),
+
+              Text(
+                "Application Received!",
+                style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+              ),
+              const SizedBox(height: 12),
+
+              Text(
+                "Thank you for joining Willko.\nOur team will verify your QID and contact you on WhatsApp soon.",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade600, height: 1.5),
+              ),
+              const SizedBox(height: 32),
+
+              // Custom Dialog Button
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Get.back(); // ডায়লগ বন্ধ করবে
+                    Get.back(); // আগের পেজ (হোম) এ ফেরত যাবে
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    "Back to Home",
+                    style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      barrierDismissible: false, // বাইরে ক্লিক করলে কাটবে না
     );
   }
 }
