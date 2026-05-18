@@ -13,32 +13,28 @@ class MyOrdersController extends GetxController {
     loadOrders();
   }
 
-  // ✅ Future<void> করা হয়েছে যাতে Pull-to-Refresh কাজ করে
   Future<void> loadOrders() async {
-    // লোডিং শুধু প্রথমবার দেখাবে, রিফ্রেশ করার সময় লোডিং স্পিনার দেখাবে না (RefreshIndicator নিজেই স্পিনার দেখায়)
     if (activeOrders.isEmpty && pastOrders.isEmpty) {
       isLoading.value = true;
     }
-    
+
     var response = await ApiService.fetchMyBookings();
 
     if (response['status'] == 'success') {
       var data = response['data'];
-      
-      // Active Orders Mapping
-      if (data['active'] != null) {
-        activeOrders.assignAll(List<Map<String, dynamic>>.from(data['active'].map((item) {
-          return _mapOrderToUI(item);
-        })));
+
+      if (data['active'] != null && data['active'] is List) {
+        activeOrders.assignAll((data['active'] as List).map((item) {
+          return _mapOrderToUI(item as Map<String, dynamic>);
+        }).toList());
       } else {
         activeOrders.clear();
       }
 
-      // History Orders Mapping
-      if (data['history'] != null) {
-        pastOrders.assignAll(List<Map<String, dynamic>>.from(data['history'].map((item) {
-          return _mapOrderToUI(item);
-        })));
+      if (data['history'] != null && data['history'] is List) {
+        pastOrders.assignAll((data['history'] as List).map((item) {
+          return _mapOrderToUI(item as Map<String, dynamic>);
+        }).toList());
       } else {
         pastOrders.clear();
       }
@@ -50,7 +46,7 @@ class MyOrdersController extends GetxController {
   }
 
   Map<String, dynamic> _mapOrderToUI(Map<String, dynamic> apiItem) {
-    String status = (apiItem['raw_status'] ?? "").toString().toLowerCase();
+    String status = (apiItem['raw_status'] ?? apiItem['status'] ?? "").toString().toLowerCase();
     Color color;
     IconData icon;
 
@@ -66,7 +62,7 @@ class MyOrdersController extends GetxController {
       case 'assigned':
       case 'on_way':
       case 'started':
-        color = Colors.purple; // কাজ শুরু হলে বেগুনি
+        color = Colors.purple;
         icon = Icons.motorcycle_rounded;
         break;
       case 'completed':
@@ -82,14 +78,22 @@ class MyOrdersController extends GetxController {
         icon = Icons.bookmark_border_rounded;
     }
 
+    // 🔥 FIX 3: Fetching Exact Price without fail
+    String displayPrice = "QR 0.00";
+    if (apiItem['raw_price'] != null) {
+      displayPrice = "QR ${double.parse(apiItem['raw_price'].toString()).toStringAsFixed(2)}";
+    } else if (apiItem['price'] != null) {
+      displayPrice = apiItem['price'].toString().replaceAll("SAR", "QR");
+    }
+
     return {
       "id": apiItem['id'],
-      "display_id": apiItem['booking_id_str'],
-      "service": apiItem['service_name'],
-      "date": apiItem['date'],
-      "time": apiItem['time'],
-      "price": apiItem['price'],
-      "status": apiItem['status'],
+      "display_id": apiItem['booking_id_str'] ?? "#ORD-${apiItem['id']}",
+      "service": apiItem['service_name'] ?? "Service",
+      "date": apiItem['date'] ?? "N/A",
+      "time": apiItem['time'] ?? "N/A",
+      "price": displayPrice,
+      "status": apiItem['status'] ?? status.capitalizeFirst,
       "image": icon,
       "color": color
     };

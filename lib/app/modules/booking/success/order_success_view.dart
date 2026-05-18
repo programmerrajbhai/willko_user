@@ -9,14 +9,15 @@ import '../../home/home_view.dart';
 import '../../order/my_orders_view.dart';
 
 class OrderSuccessView extends StatelessWidget {
-  final String orderId;
-  final double totalAmount;
-
-  // কনস্ট্রাক্টরে ডাইনামিক ডাটা রিসিভ করা হলো
-  const OrderSuccessView({super.key, this.orderId = "WK-12345", this.totalAmount = 0.0});
+  const OrderSuccessView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // 🔥 FIX: GetX Argument থেকে ডাটা রিসিভ করা হচ্ছে
+    final Map<String, dynamic> args = Get.arguments ?? {};
+    final String orderId = args['orderId']?.toString() ?? "WK-12345";
+    final double totalAmount = (args['totalAmount'] as num?)?.toDouble() ?? 0.0;
+
     // ফরম্যাটেড অর্ডার আইডি
     final String displayOrderId = orderId.startsWith('#') ? orderId : "#ORD-$orderId";
 
@@ -79,6 +80,7 @@ class OrderSuccessView extends StatelessWidget {
                   children: [
                     _buildInfoRow("Booking ID", displayOrderId, isBold: true),
                     const Divider(height: 24, color: Color(0xFFEEEEEE)),
+                    // 🔥 Fixed: ডায়নামিক অ্যামাউন্ট এখানে শো হবে
                     _buildInfoRow("Total Amount", "QR ${totalAmount.toStringAsFixed(2)}"),
                     const SizedBox(height: 12),
                     _buildInfoRow("Payment Status", "Pending"),

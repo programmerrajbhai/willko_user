@@ -101,6 +101,7 @@ class CheckoutController extends GetxController {
 
   void selectPaymentMethod(String method) => selectedPayment.value = method;
 
+
   void handlePlaceOrder() async {
     if (!isLoggedIn.value) { Get.snackbar("Login Required", "Please login to place order", backgroundColor: Colors.orange, colorText: Colors.white); return; }
     if (selectedAddress.value == null) { Get.snackbar("Address Missing", "Please select a delivery address", backgroundColor: Colors.redAccent, colorText: Colors.white); return; }
@@ -126,16 +127,24 @@ class CheckoutController extends GetxController {
 
       if (response['status'] == 'success') {
 
+        String orderId = response['booking_id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString();
         // 🔥 পিক্সেল ইভেন্ট: অর্ডার সাকসেস (Purchase)
-        String orderId = response['order_id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString();
         PixelTracker.trackPurchase(orderId: orderId, amount: grandTotal);
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove('user_cart_data');
+
+        // টোটাল এমাউন্ট একটি ভেরিয়েবলে সেভ করে রাখা
+        double finalPaidAmount = grandTotal;
+
         cartItems.clear();
 
-        // Success Page এ আর্গুমেন্ট হিসেবে ডাটা পাঠানো
-        Get.offAll(() => OrderSuccessView(orderId: orderId, totalAmount: grandTotal));
+        // 🔥 FIX: Success Page এ ডাটা আর্গুমেন্ট হিসেবে পাস করা হলো
+        Get.offAll(() => const OrderSuccessView(), arguments: {
+          'orderId': orderId,
+          'totalAmount': finalPaidAmount
+        });
+
       } else if (response['status'] == 'unauthorized') {
         Get.snackbar("Session Expired", "Please login again");
       } else {
@@ -149,3 +158,4 @@ class CheckoutController extends GetxController {
     }
   }
 }
+
