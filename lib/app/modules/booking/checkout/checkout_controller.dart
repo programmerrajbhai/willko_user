@@ -1,3 +1,5 @@
+// ফাইল: lib/app/modules/booking/checkout/checkout_controller.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -6,33 +8,28 @@ import 'package:willko_user/app/data/services/api_service.dart';
 import 'package:willko_user/app/modules/booking/address/address_view.dart';
 import 'package:willko_user/app/modules/booking/success/order_success_view.dart';
 import 'package:intl/intl.dart';
+import '../../../../utils/pixel_tracker.dart'; // 🔥 পিক্সেল ট্র্যাকার ইমপোর্ট
 
 class CheckoutController extends GetxController {
   var isLoading = false.obs;
   var isLoggedIn = false.obs;
-  
-  // User Info
+
   var userId = "".obs;
   var userName = "".obs;
   var userPhone = "".obs;
   var userImage = "".obs;
 
-  // Cart Data
   var cartItems = <Map<String, dynamic>>[].obs;
-  
-  // Address & Schedule
+
   var selectedAddress = Rxn<AddressModel>();
   var selectedDate = Rxn<DateTime>();
   var selectedTime = Rxn<TimeOfDay>();
-  
-  // Payment
+
   var selectedPayment = "Cash on Delivery".obs;
 
-  // Bill Details (No Tax)
   double get itemTotal => cartItems.fold(0, (sum, item) => sum + ((item['priceInt'] ?? 0) * (item['quantity'] ?? 1)));
   double get grandTotal => itemTotal;
 
-  // Formatters
   String get formattedDate => selectedDate.value != null ? DateFormat('yyyy-MM-dd').format(selectedDate.value!) : "";
   String get displayDate => selectedDate.value != null ? DateFormat('EEE, dd MMM').format(selectedDate.value!) : "Select Date";
   String get formattedTime => selectedTime.value != null ? selectedTime.value!.format(Get.context!) : "Select Time";
@@ -62,7 +59,6 @@ class CheckoutController extends GetxController {
     }
   }
 
-  // --- Actions ---
   void incrementQty(int index) {
     var item = cartItems[index];
     item['quantity'] = (item['quantity'] ?? 1) + 1;
@@ -99,84 +95,52 @@ class CheckoutController extends GetxController {
   }
 
   Future<void> chooseTime(BuildContext context) async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
+    final TimeOfDay? picked = await showTimePicker(context: context, initialTime: TimeOfDay.now());
     if (picked != null) selectedTime.value = picked;
   }
 
   void selectPaymentMethod(String method) => selectedPayment.value = method;
 
-  // --- Place Order ---
   void handlePlaceOrder() async {
-    // 1. Validation
-    if (!isLoggedIn.value) {
-      Get.snackbar("Login Required", "Please login to place order", backgroundColor: Colors.orange, colorText: Colors.white);
-      return;
-    }
-    if (selectedAddress.value == null) {
-      Get.snackbar("Address Missing", "Please select a delivery address", backgroundColor: Colors.redAccent, colorText: Colors.white);
-      return;
-    }
-    if (selectedDate.value == null || selectedTime.value == null) {
-      Get.snackbar("Schedule Missing", "Please select date and time", backgroundColor: Colors.redAccent, colorText: Colors.white);
-      return;
-    }
+    if (!isLoggedIn.value) { Get.snackbar("Login Required", "Please login to place order", backgroundColor: Colors.orange, colorText: Colors.white); return; }
+    if (selectedAddress.value == null) { Get.snackbar("Address Missing", "Please select a delivery address", backgroundColor: Colors.redAccent, colorText: Colors.white); return; }
+    if (selectedDate.value == null || selectedTime.value == null) { Get.snackbar("Schedule Missing", "Please select date and time", backgroundColor: Colors.redAccent, colorText: Colors.white); return; }
 
     isLoading.value = true;
 
     try {
-      // 2. Preparing Items
       List<Map<String, dynamic>> itemsList = cartItems.map((item) {
-        return {
-          "service_id": item['id'] ?? item['raw']['id'], 
-          "quantity": item['quantity'],
-          "price": item['priceInt']
-        };
+        return { "service_id": item['id'] ?? item['raw']['id'], "quantity": item['quantity'], "price": item['priceInt'] };
       }).toList();
 
-      // 3. Preparing Order Data
       Map<String, dynamic> orderData = {
-        // Identity
-        "user_id": userId.value,
-        "contact_name": userName.value,
-        "contact_phone": userPhone.value,
-
-        // Logistics
-        "address_id": selectedAddress.value!.id,
-        "full_address": selectedAddress.value!.addressLine,
-        "schedule_date": formattedDate, // YYYY-MM-DD
-        "schedule_time": formattedTime,
-
-        // Payment
-        "total_amount": grandTotal,
-        "payment_method": selectedPayment.value == "Digital Payment" ? "digital" : "cod",
+        "user_id": userId.value, "contact_name": userName.value, "contact_phone": userPhone.value,
+        "address_id": selectedAddress.value!.id, "full_address": selectedAddress.value!.addressLine,
+        "schedule_date": formattedDate, "schedule_time": formattedTime,
+        "total_amount": grandTotal, "payment_method": selectedPayment.value == "Digital Payment" ? "digital" : "cod",
         "payment_status": selectedPayment.value == "Digital Payment" ? "paid" : "unpaid",
-        
-        // Items
-        "items": itemsList,
-        
-        // Extras
-        "platform": GetPlatform.isAndroid ? "android" : "ios",
-        "order_note": ""
+        "items": itemsList, "platform": GetPlatform.isAndroid ? "android" : "ios", "order_note": ""
       };
 
-      // 4. API Call
       var response = await ApiService.placeOrder(orderData);
 
       if (response['status'] == 'success') {
+
+        // 🔥 পিক্সেল ইভেন্ট: অর্ডার সাকসেস (Purchase)
+        String orderId = response['order_id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString();
+        PixelTracker.trackPurchase(orderId: orderId, amount: grandTotal);
+
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove('user_cart_data');
         cartItems.clear();
-        Get.offAll(() => const OrderSuccessView());
+
+        // Success Page এ আর্গুমেন্ট হিসেবে ডাটা পাঠানো
+        Get.offAll(() => OrderSuccessView(orderId: orderId, totalAmount: grandTotal));
       } else if (response['status'] == 'unauthorized') {
         Get.snackbar("Session Expired", "Please login again");
-        // Redirect to Login
       } else {
         Get.snackbar("Failed", response['message'] ?? "Order failed");
       }
-
     } catch (e) {
       print("Order Error: $e");
       Get.snackbar("Error", "Something went wrong! Check connection.");

@@ -1,6 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-NTXBTXZQ');</script>
+  <script>
+    window.firePixelEvent = function(eventName, eventData) {
+      console.log("🚀 Tracking Event: " + eventName, eventData);
+
+      // ১. ডাটা লেয়ার পুশ (গুগল ট্যাগ ম্যানেজার বা GTM এর জন্য)
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        'event': eventName,
+        'ecommerce': eventData // ই-কমার্স ডাটা থাকলে এখানে আসবে
+      });
+
+      // ২. ফেসবুক পিক্সেল (যদি GTM এর বাইরে আলাদাভাবে ট্র্যাক করতে চান)
+      if(typeof fbq !== 'undefined') {
+        let fbEvent = (eventName === 'purchase') ? 'Purchase' :
+                      (eventName === 'begin_checkout') ? 'InitiateCheckout' :
+                      (eventName === 'view_item') ? 'ViewContent' : eventName;
+        fbq('track', fbEvent, eventData);
+      }
+
+      // ৩. টিকটক পিক্সেল (যদি GTM এর বাইরে আলাদাভাবে ট্র্যাক করতে চান)
+      if(typeof ttq !== 'undefined') {
+        let ttEvent = (eventName === 'purchase') ? 'CompletePayment' :
+                      (eventName === 'begin_checkout') ? 'InitiateCheckout' :
+                      (eventName === 'view_item') ? 'ViewContent' : eventName;
+        ttq.track(ttEvent, eventData);
+      }
+    };
+  </script>
+
+
+
+
+
+
+
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvGKLpsjoF5z0MaxRKktlqhD3RoRr9-54"></script>
 
   <base href="$FLUTTER_BASE_HREF">
@@ -37,6 +78,11 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NTXBTXZQ"
+                  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+
 <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

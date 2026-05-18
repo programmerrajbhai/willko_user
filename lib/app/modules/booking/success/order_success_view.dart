@@ -1,18 +1,24 @@
+// ফাইল: lib/app/modules/booking/success/order_success_view.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../utils/app_colors.dart';
 import '../../home/home_view.dart';
-import '../../order/my_orders_view.dart'; // 🚀 আনকমেন্ট করা হয়েছে
+import '../../order/my_orders_view.dart';
 
 class OrderSuccessView extends StatelessWidget {
-  const OrderSuccessView({super.key});
+  final String orderId;
+  final double totalAmount;
+
+  // কনস্ট্রাক্টরে ডাইনামিক ডাটা রিসিভ করা হলো
+  const OrderSuccessView({super.key, this.orderId = "WK-12345", this.totalAmount = 0.0});
 
   @override
   Widget build(BuildContext context) {
-    // ডামি অর্ডার আইডি জেনারেট করা
-    final String orderId = "#WK-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}";
+    // ফরম্যাটেড অর্ডার আইডি
+    final String displayOrderId = orderId.startsWith('#') ? orderId : "#ORD-$orderId";
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -36,10 +42,7 @@ class OrderSuccessView extends StatelessWidget {
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
                         padding: const EdgeInsets.all(30),
-                        decoration: BoxDecoration(
-                          color: Colors.green.shade50,
-                          shape: BoxShape.circle,
-                        ),
+                        decoration: BoxDecoration(color: Colors.green.shade50, shape: BoxShape.circle),
                         child: Icon(Icons.check_rounded, color: Colors.green.shade600, size: 80),
                       );
                     },
@@ -53,22 +56,13 @@ class OrderSuccessView extends StatelessWidget {
               Text(
                 "Booking Confirmed!",
                 textAlign: TextAlign.center,
-                style: GoogleFonts.manrope(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.black87,
-                  letterSpacing: -0.5,
-                ),
+                style: GoogleFonts.manrope(fontSize: 26, fontWeight: FontWeight.w800, color: Colors.black87, letterSpacing: -0.5),
               ),
               const SizedBox(height: 12),
               Text(
                 "Your service request has been successfully placed. We've sent a confirmation email.",
                 textAlign: TextAlign.center,
-                style: GoogleFonts.manrope(
-                  fontSize: 15,
-                  color: Colors.grey.shade600,
-                  height: 1.5,
-                ),
+                style: GoogleFonts.manrope(fontSize: 15, color: Colors.grey.shade600, height: 1.5),
               ),
 
               const SizedBox(height: 30),
@@ -83,13 +77,11 @@ class OrderSuccessView extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    _buildInfoRow("Booking ID", orderId, isBold: true),
+                    _buildInfoRow("Booking ID", displayOrderId, isBold: true),
                     const Divider(height: 24, color: Color(0xFFEEEEEE)),
-                    _buildInfoRow("Date", "Oct 24, 2023"), // ডাইনামিক ডেট বসাবেন
+                    _buildInfoRow("Total Amount", "QR ${totalAmount.toStringAsFixed(2)}"),
                     const SizedBox(height: 12),
-                    _buildInfoRow("Time", "10:00 AM - 11:00 AM"), // ডাইনামিক টাইম বসাবেন
-                    const SizedBox(height: 12),
-                    _buildInfoRow("Payment", "Cash on Delivery"),
+                    _buildInfoRow("Payment Status", "Pending"),
                   ],
                 ),
               ),
@@ -97,28 +89,20 @@ class OrderSuccessView extends StatelessWidget {
               const SizedBox(height: 40),
 
               // --- 4. Action Buttons ---
-
-              // 🚀 View Booking Details (FIXED)
               SizedBox(
                 width: double.infinity,
                 height: 55,
                 child: OutlinedButton(
                   onPressed: () {
-                    // 🔥 MyOrdersView পেজে নেভিগেট করার লজিক ঠিক করা হয়েছে
                     Get.off(() => const MyOrdersView());
                   },
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: AppColors.primary, width: 1.5),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    backgroundColor: Colors.transparent,
                   ),
                   child: Text(
                     "View Booking Details",
-                    style: GoogleFonts.manrope(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary
-                    ),
+                    style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.primary),
                   ),
                 ),
               ),
@@ -141,11 +125,7 @@ class OrderSuccessView extends StatelessWidget {
                   ),
                   child: Text(
                     "Back to Home",
-                    style: GoogleFonts.manrope(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white
-                    ),
+                    style: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
                   ),
                 ),
               ),
@@ -156,27 +136,12 @@ class OrderSuccessView extends StatelessWidget {
     );
   }
 
-  // Helper Widget for Info Row
   Widget _buildInfoRow(String label, String value, {bool isBold = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.manrope(
-            fontSize: 14,
-            color: Colors.grey.shade500,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        Text(
-          value,
-          style: GoogleFonts.manrope(
-            fontSize: 14,
-            color: isBold ? Colors.black87 : Colors.black54,
-            fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
-          ),
-        ),
+        Text(label, style: GoogleFonts.manrope(fontSize: 14, color: Colors.grey.shade500, fontWeight: FontWeight.w500)),
+        Text(value, style: GoogleFonts.manrope(fontSize: 14, color: isBold ? Colors.black87 : Colors.black54, fontWeight: isBold ? FontWeight.w800 : FontWeight.w600)),
       ],
     );
   }
