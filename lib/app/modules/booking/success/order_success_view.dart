@@ -13,12 +13,11 @@ class OrderSuccessView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 🔥 FIX: GetX Argument থেকে ডাটা রিসিভ করা হচ্ছে
+    // 🔥 GetX Argument থেকে ডাটা রিসিভ করা হচ্ছে
     final Map<String, dynamic> args = Get.arguments ?? {};
     final String orderId = args['orderId']?.toString() ?? "WK-12345";
     final double totalAmount = (args['totalAmount'] as num?)?.toDouble() ?? 0.0;
 
-    // ফরম্যাটেড অর্ডার আইডি
     final String displayOrderId = orderId.startsWith('#') ? orderId : "#ORD-$orderId";
 
     return Scaffold(
@@ -80,7 +79,6 @@ class OrderSuccessView extends StatelessWidget {
                   children: [
                     _buildInfoRow("Booking ID", displayOrderId, isBold: true),
                     const Divider(height: 24, color: Color(0xFFEEEEEE)),
-                    // 🔥 Fixed: ডায়নামিক অ্যামাউন্ট এখানে শো হবে
                     _buildInfoRow("Total Amount", "QR ${totalAmount.toStringAsFixed(2)}"),
                     const SizedBox(height: 12),
                     _buildInfoRow("Payment Status", "Pending"),

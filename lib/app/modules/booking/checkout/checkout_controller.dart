@@ -101,7 +101,6 @@ class CheckoutController extends GetxController {
 
   void selectPaymentMethod(String method) => selectedPayment.value = method;
 
-
   void handlePlaceOrder() async {
     if (!isLoggedIn.value) { Get.snackbar("Login Required", "Please login to place order", backgroundColor: Colors.orange, colorText: Colors.white); return; }
     if (selectedAddress.value == null) { Get.snackbar("Address Missing", "Please select a delivery address", backgroundColor: Colors.redAccent, colorText: Colors.white); return; }
@@ -128,18 +127,25 @@ class CheckoutController extends GetxController {
       if (response['status'] == 'success') {
 
         String orderId = response['booking_id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString();
+
         // 🔥 পিক্সেল ইভেন্ট: অর্ডার সাকসেস (Purchase)
-        PixelTracker.trackPurchase(orderId: orderId, amount: grandTotal);
+        List<Map<String, dynamic>> itemsForPixel = cartItems.map((item) {
+          return {
+            "item_id": (item['id'] ?? item['raw']?['id'] ?? "").toString(),
+            "item_name": (item['title'] ?? item['name'] ?? item['raw']?['name'] ?? "").toString(),
+            "price": ((item['priceInt'] ?? item['price'] ?? 0) as num).toDouble(),
+            "quantity": (item['quantity'] ?? 1) as int,
+          };
+        }).toList();
+
+        PixelTracker.trackPurchase(orderId: orderId, amount: grandTotal, items: itemsForPixel);
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove('user_cart_data');
 
-        // টোটাল এমাউন্ট একটি ভেরিয়েবলে সেভ করে রাখা
         double finalPaidAmount = grandTotal;
-
         cartItems.clear();
 
-        // 🔥 FIX: Success Page এ ডাটা আর্গুমেন্ট হিসেবে পাস করা হলো
         Get.offAll(() => const OrderSuccessView(), arguments: {
           'orderId': orderId,
           'totalAmount': finalPaidAmount
@@ -158,4 +164,3 @@ class CheckoutController extends GetxController {
     }
   }
 }
-

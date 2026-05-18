@@ -36,9 +36,10 @@ class ServiceDetailsController extends GetxController {
     fetchCategoryServices();
 
     // 🔥 পিক্সেল ইভেন্ট: ভিউ আইটেম
+    String sId = serviceData['id']?.toString() ?? "0";
     String sName = (serviceData["label"] ?? serviceData["name"] ?? "Service").toString();
     double sPrice = double.tryParse((serviceData["priceInt"] ?? 0).toString()) ?? 0.0;
-    PixelTracker.trackViewItem(serviceName: sName, price: sPrice);
+    PixelTracker.trackViewItem(serviceId: sId, serviceName: sName, price: sPrice);
   }
 
   Future<void> _checkLoginStatus() async {
@@ -133,6 +134,15 @@ class ServiceDetailsController extends GetxController {
       cartItems[key] = { ...current, "quantity": (current["quantity"] as int) + 1 };
     }
     cartItems.refresh();
+
+    // 🔥 পিক্সেল ইভেন্ট: অ্যাড টু কার্ট
+    PixelTracker.trackAddToCart(
+        serviceId: (p["id"] ?? p["key"] ?? "").toString(),
+        serviceName: (p["title"] ?? p["name"] ?? "").toString(),
+        price: ((p["priceInt"] ?? p["price"] ?? 0) as num).toDouble(),
+        quantity: 1
+    );
+
     Get.snackbar("Added", "Added to cart", backgroundColor: Colors.green, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM, duration: const Duration(seconds: 1));
   }
 
@@ -161,6 +171,14 @@ class ServiceDetailsController extends GetxController {
       final qty = sheetTempQty.value;
       if (qty <= 0) { cartItems.remove(key); } else {
         cartItems[key] = { "key": key, "title": p["title"], "priceInt": p["priceInt"], "quantity": qty, "raw": p };
+
+        // 🔥 পিক্সেল ইভেন্ট: অ্যাড টু কার্ট (শিট থেকে)
+        PixelTracker.trackAddToCart(
+            serviceId: (p["id"] ?? p["key"] ?? "").toString(),
+            serviceName: (p["title"] ?? p["name"] ?? "").toString(),
+            price: ((p["priceInt"] ?? p["price"] ?? 0) as num).toDouble(),
+            quantity: qty
+        );
       }
       cartItems.refresh();
     }
@@ -191,8 +209,17 @@ class ServiceDetailsController extends GetxController {
   }
 
   void _navigateToCheckout() {
-    // 🔥 পিক্সেল ইভেন্ট: বিগিন চেকআউট
-    PixelTracker.trackBeginCheckout(totalAmount: totalCartPrice.toDouble());
+    // 🔥 পিক্সেল ইভেন্ট: বিগিন চেকআউট (স্ক্রিনশটের ফরম্যাটে ডাটা প্রিপেয়ার করা)
+    List<Map<String, dynamic>> itemsForPixel = cartItems.values.map((item) {
+      return {
+        "item_id": (item['key'] ?? item['id'] ?? "").toString(),
+        "item_name": (item['title'] ?? item['name'] ?? "").toString(),
+        "price": ((item['priceInt'] ?? item['price'] ?? 0) as num).toDouble(),
+        "quantity": (item['quantity'] ?? 1) as int,
+      };
+    }).toList();
+
+    PixelTracker.trackBeginCheckout(totalAmount: totalCartPrice.toDouble(), items: itemsForPixel);
 
     Get.to(() => const CheckoutView(), binding: BindingsBuilder(() { Get.put(CheckoutController()); }), arguments: {'cart': cartItems.values.toList()}, transition: Transition.cupertino);
   }

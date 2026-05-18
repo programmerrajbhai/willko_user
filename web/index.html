@@ -7,39 +7,62 @@ new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-NTXBTXZQ');</script>
-  <script>
-    window.firePixelEvent = function(eventName, eventData) {
-      console.log("🚀 Tracking Event: " + eventName, eventData);
 
-      // ১. ডাটা লেয়ার পুশ (গুগল ট্যাগ ম্যানেজার বা GTM এর জন্য)
+
+
+  <script>
+    window.firePixelEvent = function(eventName, ecommerceData) {
+      console.log("🚀 DataLayer Event Triggered: " + eventName, ecommerceData);
+
+      // ১. GTM DataLayer Push (হুবহু আপনার স্ক্রিনশটের ফরম্যাট)
       window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ ecommerce: null }); // Clear previous ecommerce object
       window.dataLayer.push({
         'event': eventName,
-        'ecommerce': eventData // ই-কমার্স ডাটা থাকলে এখানে আসবে
+        'ecommerce': {
+          'items': ecommerceData.items,
+          'currency': ecommerceData.currency,
+          'value': ecommerceData.value
+        }
       });
 
-      // ২. ফেসবুক পিক্সেল (যদি GTM এর বাইরে আলাদাভাবে ট্র্যাক করতে চান)
+      // ২. Facebook Pixel (Smart Mapper)
       if(typeof fbq !== 'undefined') {
         let fbEvent = (eventName === 'purchase') ? 'Purchase' :
                       (eventName === 'begin_checkout') ? 'InitiateCheckout' :
+                      (eventName === 'add_to_cart') ? 'AddToCart' :
                       (eventName === 'view_item') ? 'ViewContent' : eventName;
-        fbq('track', fbEvent, eventData);
+
+        let fbData = { value: ecommerceData.value, currency: ecommerceData.currency };
+        if (ecommerceData.items && ecommerceData.items.length > 0) {
+           fbData.content_name = ecommerceData.items.map(i => i.item_name).join(', ');
+           fbData.content_ids = ecommerceData.items.map(i => i.item_id);
+           fbData.content_type = 'product';
+        }
+        fbq('track', fbEvent, fbData);
       }
 
-      // ৩. টিকটক পিক্সেল (যদি GTM এর বাইরে আলাদাভাবে ট্র্যাক করতে চান)
+      // ৩. TikTok Pixel (Smart Mapper)
       if(typeof ttq !== 'undefined') {
         let ttEvent = (eventName === 'purchase') ? 'CompletePayment' :
                       (eventName === 'begin_checkout') ? 'InitiateCheckout' :
+                      (eventName === 'add_to_cart') ? 'AddToCart' :
                       (eventName === 'view_item') ? 'ViewContent' : eventName;
-        ttq.track(ttEvent, eventData);
+
+        let ttData = { value: ecommerceData.value, currency: ecommerceData.currency };
+        if (ecommerceData.items && ecommerceData.items.length > 0) {
+           ttData.contents = ecommerceData.items.map(i => ({
+               content_id: i.item_id,
+               content_name: i.item_name,
+               price: i.price,
+               quantity: i.quantity
+           }));
+           ttData.content_type = 'product';
+        }
+        ttq.track(ttEvent, ttData);
       }
     };
   </script>
-
-
-
-
-
 
 
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvGKLpsjoF5z0MaxRKktlqhD3RoRr9-54"></script>

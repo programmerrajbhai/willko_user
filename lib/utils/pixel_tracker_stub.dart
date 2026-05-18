@@ -1,17 +1,25 @@
-// ফাইল: lib/utils/pixel_tracker_stub.dart
+// ফাইল: lib/utils/pixel_tracker.dart
+import 'package:flutter/foundation.dart';
+import 'pixel_tracker_web.dart' if (dart.library.io) 'pixel_tracker_stub.dart';
 
-// এটি মোবাইল (Android/iOS) অ্যাপের জন্য ডামি/ফাঁকা ক্লাস
-// এর ফলে মোবাইলে অ্যাপ রান করার সময় dart:js এর কোনো এরর আসবে না।
-class PixelTrackerImpl {
-  static void trackViewItem(String serviceName, double price) {
-    // মোবাইলে কোনো কাজ করবে না
+class PixelTracker {
+  // View Item
+  static void trackViewItem({required String serviceId, required String serviceName, required double price}) {
+    if (kIsWeb) PixelTrackerImpl.trackViewItem(serviceId, serviceName, price);
   }
 
-  static void trackBeginCheckout(double totalAmount) {
-    // মোবাইলে কোনো কাজ করবে না
+  // Add To Cart
+  static void trackAddToCart({required String serviceId, required String serviceName, required double price, required int quantity}) {
+    if (kIsWeb) PixelTrackerImpl.trackAddToCart(serviceId, serviceName, price, quantity);
   }
 
-  static void trackPurchase(String orderId, double amount) {
-    // মোবাইলে কোনো কাজ করবে না
+  // Begin Checkout
+  static void trackBeginCheckout({required double totalAmount, required List<Map<String, dynamic>> items}) {
+    if (kIsWeb) PixelTrackerImpl.trackBeginCheckout(totalAmount, items);
+  }
+
+  // Purchase
+  static void trackPurchase({required String orderId, required double amount, required List<Map<String, dynamic>> items}) {
+    if (kIsWeb) PixelTrackerImpl.trackPurchase(orderId, amount, items);
   }
 }
