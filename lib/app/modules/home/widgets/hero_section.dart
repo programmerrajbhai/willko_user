@@ -42,13 +42,13 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
           "Book trusted professionals for cleaning, repair, and grooming.\nExperience luxury at your doorstep.",
     },
     {
-      "image": "assets/images/hero_worker.jpeg",
+      "image": "assets/images/img.png",
       "title": "Expert repairs,\ninstant relief.",
       "subtitle":
           "AC, plumbing, and electrical experts just a tap away.\nFast, reliable, and verified.",
     },
     {
-      "image": "assets/images/service_man.jpg",
+      "image": "assets/images/img_1.png",
       "title": "Premium cleaning,\nsparkling homes.",
       "subtitle":
           "Deep cleaning, sofa washing, and sanitization.\nYour home, cleaner than ever.",

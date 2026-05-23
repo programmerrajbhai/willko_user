@@ -1,9 +1,12 @@
+// ফাইল: lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:willko_user/app/modules/home/service_details/service_details_view.dart';
-import 'app/modules/home/home_view.dart'; // আপনার হোম পেজ ইমপোর্ট করুন
+import 'package:willko_user/app/modules/home/home_view.dart';
 
 void main() {
+  // 🔥 লোডিং স্পিড সুপার ফাস্ট এবং ইঞ্জিন বাইন্ডিং অপ্টিমাইজ করার জন্য এটি বাধ্যতামূলক
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
@@ -13,10 +16,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'Urban Service',
+      // 🔥 SEO Friendly Title: হাই-সার্চ ভলিউম কিওয়ার্ড যুক্ত করা হয়েছে যাতে সার্চে সহজে আসে
+      title: 'Willko Service - Best Home, Cleaning & Professional Services Partner',
       debugShowCheckedModeBanner: false,
 
-      // ১. লাইট থিম (ডিফল্ট
+      // ১. লাইট থিম (ডিফল্ট)
       theme: ThemeData(
         brightness: Brightness.light,
         primarySwatch: Colors.blue,
@@ -29,25 +33,24 @@ class MyApp extends StatelessWidget {
         ),
       ),
 
-      // ২. ডার্ক থিম (এটি না থাকলে থিম চেঞ্জ হবে না)
+      // ২. ডার্ক থিম
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: const Color(0xFF121212), // ডার্ক ব্যাকগ্রাউন্ড
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1F1F1F),
+          backgroundColor: const Color(0xFF1F1F1F),
           elevation: 0,
-          iconTheme: IconThemeData(color: Colors.white),
+          iconTheme: const IconThemeData(color: Colors.white),
           titleTextStyle: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        // টেক্সট এবং আইকন কালার অটোমেটিক এডজাস্ট হবে
       ),
 
       // ৩. ডিফল্ট মোড
       themeMode: ThemeMode.light,
 
-      // আপনার হোম বা স্প্ল্যাশ স্ক্রিন
-      home: HomeView()
+      // হোম স্ক্রিন
+      home: const HomeView(),
     );
   }
 }

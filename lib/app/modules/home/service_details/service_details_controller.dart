@@ -39,7 +39,12 @@ class ServiceDetailsController extends GetxController {
     String sId = serviceData['id']?.toString() ?? "0";
     String sName = (serviceData["label"] ?? serviceData["name"] ?? "Service").toString();
     double sPrice = double.tryParse((serviceData["priceInt"] ?? 0).toString()) ?? 0.0;
+
+
     PixelTracker.trackViewItem(serviceId: sId, serviceName: sName, price: sPrice);
+
+
+
   }
 
   Future<void> _checkLoginStatus() async {

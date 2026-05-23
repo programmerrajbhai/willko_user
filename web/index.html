@@ -2,11 +2,24 @@
 <html lang="en">
 <head>
 
-  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-NTXBTXZQ');</script>
+  <!-- Google Tag Manager -->
+  <script>
+    (function(w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({
+            'gtm.start': new Date().getTime(),
+            event: 'gtm.js'
+        });
+        var f = d.getElementsByTagName(s)[0],
+            j = d.createElement(s),
+            dl = l != 'dataLayer' ? '&l=' + l : '';
+        j.async = true;
+        j.src =
+            'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+        f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', 'GTM-MHKTQ8HF');
+  </script>
+  <!-- End Google Tag Manager -->
 
 
 
@@ -26,41 +39,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         }
       });
 
-      // ২. Facebook Pixel (Smart Mapper)
-      if(typeof fbq !== 'undefined') {
-        let fbEvent = (eventName === 'purchase') ? 'Purchase' :
-                      (eventName === 'begin_checkout') ? 'InitiateCheckout' :
-                      (eventName === 'add_to_cart') ? 'AddToCart' :
-                      (eventName === 'view_item') ? 'ViewContent' : eventName;
 
-        let fbData = { value: ecommerceData.value, currency: ecommerceData.currency };
-        if (ecommerceData.items && ecommerceData.items.length > 0) {
-           fbData.content_name = ecommerceData.items.map(i => i.item_name).join(', ');
-           fbData.content_ids = ecommerceData.items.map(i => i.item_id);
-           fbData.content_type = 'product';
-        }
-        fbq('track', fbEvent, fbData);
-      }
 
-      // ৩. TikTok Pixel (Smart Mapper)
-      if(typeof ttq !== 'undefined') {
-        let ttEvent = (eventName === 'purchase') ? 'CompletePayment' :
-                      (eventName === 'begin_checkout') ? 'InitiateCheckout' :
-                      (eventName === 'add_to_cart') ? 'AddToCart' :
-                      (eventName === 'view_item') ? 'ViewContent' : eventName;
 
-        let ttData = { value: ecommerceData.value, currency: ecommerceData.currency };
-        if (ecommerceData.items && ecommerceData.items.length > 0) {
-           ttData.contents = ecommerceData.items.map(i => ({
-               content_id: i.item_id,
-               content_name: i.item_name,
-               price: i.price,
-               quantity: i.quantity
-           }));
-           ttData.content_type = 'product';
-        }
-        ttq.track(ttEvent, ttData);
-      }
     };
   </script>
 
@@ -102,8 +83,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 </head>
 <body>
 
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NTXBTXZQ"
-                  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MHKTQ8HF" height="0" width="0"
+                  style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
 
 
 <script src="flutter_bootstrap.js" async></script>
