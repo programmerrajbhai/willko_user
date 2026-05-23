@@ -123,16 +123,39 @@ class ProductRow extends StatelessWidget {
     final hasDiscount = (p["tag"] ?? "").toString().isNotEmpty;
 
     // 🔥 SMART IMAGE LOGIC
-    final String imageVal = (p['image'] ?? p['image_url'] ?? p['thumbnail'] ?? "").toString().trim();
+    String imageVal = (p['image'] ?? p['image_url'] ?? p['thumbnail'] ?? p['picture'] ?? p['service_image'] ?? "").toString().trim();
+
+    if (imageVal.toLowerCase() == "null") {
+      imageVal = "";
+    }
+
+    // 🔴🔴 CRITICAL FIX: Double URL Extractor 🔴🔴
+    // যদি লিংকের ভেতর দুইবার http থাকে, তাহলে এটি পেছনের ভুল লিংকটি কেটে ফেলবে এবং সঠিক লিংকটি বের করে আনবে।
+    int lastHttpIndex = imageVal.lastIndexOf('http');
+    if (lastHttpIndex > 0) {
+      imageVal = imageVal.substring(lastHttpIndex);
+    }
 
     String fullImageUrl = "";
     if (imageVal.isEmpty) {
       fullImageUrl = "https://ui-avatars.com/api/?name=Service&background=E0E0E0";
     } else if (imageVal.startsWith('http')) {
-      fullImageUrl = imageVal; // সরাসরি URL থাকলে
+      if (imageVal.startsWith('http://')) {
+        fullImageUrl = imageVal.replaceFirst('http://', 'https://');
+      } else {
+        fullImageUrl = imageVal;
+      }
     } else {
-      // ⚠️ আপনার ডোমেইন বসান
-      fullImageUrl = "https://yourdomain.com/api/uploads/$imageVal";
+      const String baseApiUrl = "https://willkoservices.com/willkoadmin/uploads/services";
+      final String safeImageVal = imageVal.startsWith('/') ? imageVal : '/$imageVal';
+      fullImageUrl = "$baseApiUrl$safeImageVal";
+    }
+
+    // URL এ কোনো স্পেস থাকলে ফিক্স করার জন্য
+    try {
+      fullImageUrl = Uri.encodeFull(fullImageUrl);
+    } catch (e) {
+      debugPrint("URL Encoding Error: $e");
     }
 
     return Container(
@@ -288,10 +311,6 @@ class ProductRow extends StatelessWidget {
                               width: 85,
                               height: 85,
                               fit: BoxFit.cover,
-                              headers: const {
-                                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-                                "Accept": "image/webp,image/apng,image/*,*/*;q=0.8",
-                              },
                               loadingBuilder: (context, child, loadingProgress) {
                                 if (loadingProgress == null) return child;
                                 return Container(
@@ -314,7 +333,7 @@ class ProductRow extends StatelessWidget {
                                 );
                               },
                               errorBuilder: (context, error, stackTrace) {
-                                debugPrint("🔴 Image Error: $fullImageUrl -> $error");
+                                debugPrint("🔴 Image Error URL: $fullImageUrl");
                                 return Container(
                                   width: 85,
                                   height: 85,
