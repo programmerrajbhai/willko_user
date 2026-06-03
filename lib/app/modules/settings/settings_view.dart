@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../utils/app_colors.dart';
 import 'settings_controller.dart';
 
@@ -61,7 +63,7 @@ class SettingsView extends StatelessWidget {
 
             _buildSettingsContainer(
               children: [
-                // Contact Support
+                // Contact Support (Updated with Bottom Sheet)
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
@@ -69,13 +71,13 @@ class SettingsView extends StatelessWidget {
                     child: const Icon(Icons.headset_mic_outlined, color: Colors.green),
                   ),
                   title: Text("Contact Support", style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
-                  subtitle: Text("Call us at ${controller.supportPhone}", style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey)),
+                  subtitle: Text("WhatsApp: 3366 7970", style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey)),
                   trailing: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: const BoxDecoration(color: Color(0xFFE8F5E9), shape: BoxShape.circle),
-                    child: const Icon(Icons.phone, size: 18, color: Colors.green),
+                    child: const Icon(Icons.support_agent, size: 18, color: Colors.green),
                   ),
-                  onTap: controller.callSupport,
+                  onTap: () => _showSupportBottomSheet(context, "33667970"),
                 ),
                 Divider(height: 1, color: Colors.grey.shade100),
 
@@ -151,10 +153,119 @@ class SettingsView extends StatelessWidget {
       child: Column(children: children),
     );
   }
+
+  // ========================================================
+  // 🔥 BOTTOM SHEET FOR SUPPORT OPTIONS
+  // ========================================================
+  void _showSupportBottomSheet(BuildContext context, String phoneNumber) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(10))),
+              const SizedBox(height: 20),
+              Text("Contact Support", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+              const SizedBox(height: 8),
+              Text("How would you like to reach us?", style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade600)),
+              const SizedBox(height: 24),
+
+              // 1. WhatsApp Action
+              _supportActionCard(
+                icon: Icons.chat_outlined,
+                color: const Color(0xFF25D366),
+                title: "Message on WhatsApp",
+                onTap: () async {
+                  Get.back();
+                  final Uri url = Uri.parse("https://wa.me/$phoneNumber");
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
+                  } else {
+                    Get.snackbar("Error", "Could not open WhatsApp", snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+                  }
+                },
+              ),
+              const SizedBox(height: 12),
+
+              // 2. Call Action
+              _supportActionCard(
+                icon: Icons.phone_outlined,
+                color: Colors.blue,
+                title: "Call Direct",
+                onTap: () async {
+                  Get.back();
+                  final Uri url = Uri.parse("tel:$phoneNumber");
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url);
+                  } else {
+                    Get.snackbar("Error", "Could not open dialer", snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+                  }
+                },
+              ),
+              const SizedBox(height: 12),
+
+              // 3. Copy Number Action
+              _supportActionCard(
+                icon: Icons.copy_rounded,
+                color: Colors.grey.shade700,
+                title: "Copy Number",
+                onTap: () {
+                  Get.back();
+                  Clipboard.setData(ClipboardData(text: phoneNumber));
+                  Get.snackbar(
+                    "Copied!",
+                    "Support number $phoneNumber copied to clipboard.",
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.green.shade600,
+                    colorText: Colors.white,
+                    margin: const EdgeInsets.all(16),
+                    icon: const Icon(Icons.check_circle, color: Colors.white),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _supportActionCard({required IconData icon, required Color color, required String title, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.2)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 22),
+            const SizedBox(width: 16),
+            Text(title, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: color)),
+            const Spacer(),
+            Icon(Icons.arrow_forward_ios_rounded, color: color.withOpacity(0.5), size: 14),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 // ========================================================
-// 2. PRIVACY POLICY VIEW (Same File)
+// 2. PRIVACY POLICY VIEW
 // ========================================================
 class PrivacyPolicyView extends StatelessWidget {
   const PrivacyPolicyView({super.key});
@@ -166,10 +277,7 @@ class PrivacyPolicyView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0.5,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87),
-          onPressed: () => Get.back(),
-        ),
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87), onPressed: () => Get.back()),
         title: Text("Privacy Policy", style: GoogleFonts.poppins(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 18)),
       ),
       body: SingleChildScrollView(
@@ -195,7 +303,7 @@ class PrivacyPolicyView extends StatelessWidget {
 }
 
 // ========================================================
-// 3. TERMS & CONDITIONS VIEW (Same File)
+// 3. TERMS & CONDITIONS VIEW
 // ========================================================
 class TermsConditionsView extends StatelessWidget {
   const TermsConditionsView({super.key});
@@ -207,10 +315,7 @@ class TermsConditionsView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0.5,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87),
-          onPressed: () => Get.back(),
-        ),
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87), onPressed: () => Get.back()),
         title: Text("Terms & Conditions", style: GoogleFonts.poppins(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 18)),
       ),
       body: SingleChildScrollView(

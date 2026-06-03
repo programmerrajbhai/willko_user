@@ -13,91 +13,76 @@ class ServicesChipsUC extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 🔥 ১. SECTION TITLE (আল্ট্রা-মডার্ন হেডার)
+        // 🔥 ১. SECTION TITLE
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Our Categories",
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    "Explore Services",
-                    style: GoogleFonts.playfairDisplay(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFF1E1E1E), // Deep Dark Color
-                    ),
-                  ),
-                ],
+              Text(
+                "Our Categories",
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                "Explore Services",
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF1E1E1E),
+                ),
               ),
             ],
           ),
         ),
 
-        const SizedBox(height: 20), // টাইটেল এবং চিপসের মাঝে গ্যাপ
+        const SizedBox(height: 20),
 
-        // 🔥 ২. CHIPS LIST (2 Items per row on Any Mobile)
+        // 🔥 ২. CHIPS LIST (Responsive Grid)
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Obx(() {
-            // প্রো লেভেল লোডিং (Shimmer Animation)
             if (controller.isLoading.value && controller.categories.isEmpty) {
               return const _ShimmerLoadingGrid();
             }
 
-            // ডাটা না থাকলে হাইড
             if (controller.categories.isEmpty) {
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
-                  child: Text(
-                    "No services available",
-                    style: GoogleFonts.poppins(color: Colors.grey),
-                  ),
+                  child: Text("No services available",
+                      style: GoogleFonts.poppins(color: Colors.grey)),
                 ),
               );
             }
 
-            // মেইন ডাটা ভিউ (২টি করে আইটেম গ্রিড স্টাইলে)
-            return LayoutBuilder(
-                builder: (context, constraints) {
-                  // স্ক্রিনের প্রস্থ অনুযায়ী প্রতিটি চিপের সাইজ বের করা
-                  final double gap = 12.0; // মাঝখানের গ্যাপ
-                  final double itemWidth = (constraints.maxWidth - gap) / 2; // ২ দিয়ে ভাগ
+            return LayoutBuilder(builder: (context, constraints) {
+              final double gap = 12.0;
+              final double itemWidth = (constraints.maxWidth - gap) / 2;
 
-                  return Wrap(
-                    spacing: gap,
-                    runSpacing: 16,
-                    children: List.generate(controller.categories.length, (i) {
-                      final cat = controller.categories[i];
-                      final bool isSelected = controller.selectedCategoryIndex.value == i;
+              return Wrap(
+                spacing: gap,
+                runSpacing: 12,
+                children: List.generate(controller.categories.length, (i) {
+                  final cat = controller.categories[i];
+                  final bool isSelected = controller.selectedCategoryIndex.value == i;
 
-                      return SizedBox(
-                        width: itemWidth, // ফিক্সড উইডথ যাতে প্রতি লাইনে ২টি বসে
-                        child: _ProServiceChip(
-                          selected: isSelected,
-                          imageUrl: cat['image_url'],
-                          label: cat['name'] ?? "Service",
-                          onTap: () => controller.onCategoryTap(i),
-                        ),
-                      );
-                    }),
+                  return SizedBox(
+                    width: itemWidth,
+                    child: _ProServiceChip(
+                      selected: isSelected,
+                      label: cat['name'] ?? "Service",
+                      onTap: () => controller.onCategoryTap(i),
+                    ),
                   );
-                }
-            );
+                }),
+              );
+            });
           }),
         ),
       ],
@@ -105,16 +90,14 @@ class ServicesChipsUC extends StatelessWidget {
   }
 }
 
-// 🔥 ULTRA PRO CHIP DESIGN 🔥
+// 🔥 ULTRA PRO CHIP DESIGN (With Icon & Text Start & Multi-line) 🔥
 class _ProServiceChip extends StatelessWidget {
   final bool selected;
-  final String? imageUrl;
   final String label;
   final VoidCallback onTap;
 
   const _ProServiceChip({
     required this.selected,
-    this.imageUrl,
     required this.label,
     required this.onTap,
   });
@@ -126,7 +109,7 @@ class _ProServiceChip extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
         decoration: BoxDecoration(
           gradient: selected
               ? LinearGradient(
@@ -136,52 +119,39 @@ class _ProServiceChip extends StatelessWidget {
           )
               : null,
           color: selected ? null : Colors.white,
-          borderRadius: BorderRadius.circular(16), // একটু স্কয়ারিশ লুক
+          borderRadius: BorderRadius.circular(14),
           boxShadow: selected
-              ? [BoxShadow(color: AppColors.primary.withOpacity(0.4), blurRadius: 15, offset: const Offset(0, 6))]
-              : [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
+              ? [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))]
+              : [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6, offset: const Offset(0, 2))],
           border: Border.all(
             color: selected ? Colors.transparent : Colors.grey.shade200,
-            width: 1.5,
+            width: 1,
           ),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ✅ Image / Icon with Animation
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              height: 32, // আইকনের সাইজ একটু বড়
-              width: 32,
-              decoration: BoxDecoration(
-                color: selected ? Colors.white : Colors.grey.shade100,
-                shape: BoxShape.circle,
-                boxShadow: selected ? [const BoxShadow(color: Colors.black12, blurRadius: 4)] : [],
-              ),
-              child: ClipOval(
-                child: imageUrl != null
-                    ? Image.network(
-                  imageUrl!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (c, o, s) => Icon(Icons.category_rounded, size: 18, color: selected ? AppColors.primary : Colors.grey.shade600),
-                )
-                    : Icon(Icons.category_rounded, size: 18, color: selected ? AppColors.primary : Colors.grey.shade600),
-              ),
+            // 🔹 ৪-ডট আইকন (Grid View)
+            Icon(
+              Icons.grid_view_rounded,
+              size: 16,
+              color: selected ? Colors.white : AppColors.primary,
             ),
-            const SizedBox(width: 8), // টেক্সট এবং আইকনের মাঝে গ্যাপ
-            // ✅ Text Style (Expanded to prevent overflow)
+            const SizedBox(width: 8), // আইকন ও টেক্সটের মাঝে গ্যাপ
+
+            // 🔹 টেক্সট সেকশন (Start Alignment & Multi-line Support)
             Expanded(
               child: Text(
                 label,
+                textAlign: TextAlign.start,
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                   color: selected ? Colors.white : const Color(0xFF2D3436),
-                  letterSpacing: 0.3,
+                  height: 1.2, // লাইনের স্পেসিং পারফেক্ট করার জন্য
                 ),
-                maxLines: 1, // এক লাইনের বেশি হবে না
-                overflow: TextOverflow.ellipsis, // বড় নাম হলে শেষে ... আসবে
+                maxLines: 2, // বড় টেক্সট হলে পরের লাইনে যাবে
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -191,7 +161,7 @@ class _ProServiceChip extends StatelessWidget {
   }
 }
 
-// 🦴 ADVANCED SHIMMER LOADING FOR GRID 🦴
+// 🦴 SHIMMER LOADING (Updated with Icon Space) 🦴
 class _ShimmerLoadingGrid extends StatefulWidget {
   const _ShimmerLoadingGrid();
 
@@ -216,47 +186,54 @@ class _ShimmerLoadingGridState extends State<_ShimmerLoadingGrid> with SingleTic
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-        builder: (context, constraints) {
-          final double gap = 12.0;
-          final double itemWidth = (constraints.maxWidth - gap) / 2;
+    return LayoutBuilder(builder: (context, constraints) {
+      final double gap = 12.0;
+      final double itemWidth = (constraints.maxWidth - gap) / 2;
 
-          return Wrap(
-            spacing: gap,
-            runSpacing: 16,
-            children: List.generate(6, (index) { // ৬টা ডামি কার্ড
-              return FadeTransition(
-                opacity: Tween<double>(begin: 0.4, end: 1.0).animate(_controller),
-                child: SizedBox(
-                  width: itemWidth,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.shade100, width: 1.5),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 32, height: 32,
-                          decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Container(
-                            height: 14,
-                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+      return Wrap(
+        spacing: gap,
+        runSpacing: 12,
+        children: List.generate(6, (index) {
+          return FadeTransition(
+            opacity: Tween<double>(begin: 0.4, end: 1.0).animate(_controller),
+            child: SizedBox(
+              width: itemWidth,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(14),
                 ),
-              );
-            }),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // ডামি আইকন
+                    Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // ডামি টেক্সট
+                    Expanded(
+                      child: Container(
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           );
-        }
-    );
+        }),
+      );
+    });
   }
 }
