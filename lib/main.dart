@@ -1,12 +1,21 @@
 // ফাইল: lib/main.dart
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:willko_user/app/modules/home/home_view.dart';
 
-void main() {
+import 'firebase_options.dart';
+
+Future<void> main() async {
   // 🔥 লোডিং স্পিড সুপার ফাস্ট এবং ইঞ্জিন বাইন্ডিং অপ্টিমাইজ করার জন্য এটি বাধ্যতামূলক
   WidgetsFlutterBinding.ensureInitialized();
+  // Firebase initialize korchi
+// Firebase initialize kora
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(const MyApp());
 }
 

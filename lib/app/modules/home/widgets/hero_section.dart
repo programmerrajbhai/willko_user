@@ -20,7 +20,7 @@ import '../../booking/address/address_view.dart';
 import '../../settings/settings_view.dart';
 
 // ==========================================
-// 🚀 HERO SECTION WIDGET (Stateful for Slider)
+// 🚀 HERO SECTION WIDGET (Stateful for Slider) - OPTIMIZED FOR FAST IMAGE LOADING
 // ==========================================
 class UrbanHeroSection extends StatefulWidget {
   const UrbanHeroSection({super.key});
@@ -39,19 +39,19 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
       "image": "assets/images/service_man.jpg",
       "title": "Home services,\nredefined.",
       "subtitle":
-          "Book trusted professionals for cleaning, repair, and grooming.\nExperience luxury at your doorstep.",
+      "Book trusted professionals for cleaning, repair, and grooming.\nExperience luxury at your doorstep.",
     },
     {
-      "image": "assets/images/img.png",
+      "image": "assets/images/img.jpg",
       "title": "Expert repairs,\ninstant relief.",
       "subtitle":
-          "AC, plumbing, and electrical experts just a tap away.\nFast, reliable, and verified.",
+      "AC, plumbing, and electrical experts just a tap away.\nFast, reliable, and verified.",
     },
     {
-      "image": "assets/images/img_1.png",
+      "image": "assets/images/img_1.jpg",
       "title": "Premium cleaning,\nsparkling homes.",
       "subtitle":
-          "Deep cleaning, sofa washing, and sanitization.\nYour home, cleaner than ever.",
+      "Deep cleaning, sofa washing, and sanitization.\nYour home, cleaner than ever.",
     },
   ];
 
@@ -72,6 +72,15 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
         );
       }
     });
+  }
+
+  // 🔥 জাদুর মেথড: হোম পেজ বিল্ড হওয়ার সাথে সাথেই ব্রাউজার মেমরিতে সব ছবি প্রিক্যাশ (Pre-cache) করে ফেলবে
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    for (var slide in heroSlides) {
+      precacheImage(AssetImage(slide["image"]!), context);
+    }
   }
 
   @override
@@ -106,10 +115,23 @@ class _UrbanHeroSectionState extends State<UrbanHeroSection> {
               return Stack(
                 fit: StackFit.expand,
                 children: [
+                  // 🔥 অপ্টিমাইজড ইমেজ উইজেট
                   Image.asset(
                     slide["image"]!,
                     fit: BoxFit.cover,
                     alignment: Alignment.topCenter,
+                    // মেমরিতে ইমেজ ডিকোডিং সাইজ ফিক্স করে দেওয়া যাতে জ্যাম না লাগে
+                    cacheWidth: isMobile ? 800 : 1600,
+                    // প্রথমবার লোড হওয়ার সময় হুট করে না এসে স্মুথভাবে ফেড-ইন (Fade-in) হবে
+                    frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                      if (wasSynchronouslyLoaded) return child;
+                      return AnimatedOpacity(
+                        opacity: frame == null ? 0 : 1,
+                        duration: const Duration(milliseconds: 400),
+                        curve: Curves.easeOut,
+                        child: child,
+                      );
+                    },
                   ),
                   Container(
                     decoration: BoxDecoration(
@@ -346,7 +368,7 @@ class UrbanDrawer extends StatelessWidget {
                 ),
               ),
               child: Obx(
-                () => Column(
+                    () => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CircleAvatar(
@@ -392,7 +414,7 @@ class UrbanDrawer extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 physics: const BouncingScrollPhysics(),
                 child: Obx(
-                  () => Column(
+                      () => Column(
                     children: [
                       _DrawerTile(
                         icon: Icons.home_rounded,
@@ -401,13 +423,7 @@ class UrbanDrawer extends StatelessWidget {
                       ),
 
                       if (controller.isLoggedIn.value) ...[
-                        // ✅ 1. Cart
-                        // _DrawerTile(icon: Icons.shopping_cart_outlined, title: "My Cart", onTap: () {
-                        //   Get.back();
-                        //   Get.to(() => const CartView());
-                        // }),
-
-                        // ✅ 2. Order History & Tracking
+                        // ✅ 1. Order History & Tracking
                         _DrawerTile(
                           icon: Icons.receipt_long_rounded,
                           title: "My Orders & Tracking",
@@ -417,7 +433,7 @@ class UrbanDrawer extends StatelessWidget {
                           },
                         ),
 
-                        // ✅ 3. Notifications
+                        // ✅ 2. Notifications
                         _DrawerTile(
                           icon: Icons.notifications_none_rounded,
                           title: "Notifications",
@@ -427,7 +443,7 @@ class UrbanDrawer extends StatelessWidget {
                           },
                         ),
 
-                        // ✅ 4. Saved Addresses
+                        // ✅ 3. Saved Addresses
                         _DrawerTile(
                           icon: Icons.location_on_outlined,
                           title: "Saved Addresses",
@@ -437,7 +453,7 @@ class UrbanDrawer extends StatelessWidget {
                           },
                         ),
 
-                        // ✅ 5. Profile
+                        // ✅ 4. Profile
                         _DrawerTile(
                           icon: Icons.person_outline_rounded,
                           title: "My Profile",
@@ -467,7 +483,7 @@ class UrbanDrawer extends StatelessWidget {
 
                       const Divider(color: Colors.white12, height: 30),
 
-                      // ✅ 6. Settings
+                      // ✅ 5. Settings
                       _DrawerTile(
                         icon: Icons.settings_outlined,
                         title: "Settings",
@@ -477,7 +493,7 @@ class UrbanDrawer extends StatelessWidget {
                         },
                       ),
 
-                      // ✅ 7. Help & Support
+                      // ✅ 6. Help & Support
                       _DrawerTile(
                         icon: Icons.support_agent_rounded,
                         title: "Help & Support",
@@ -494,12 +510,12 @@ class UrbanDrawer extends StatelessWidget {
                         },
                       ),
 
-                      // 💎 8. We Are Hiring
-                      HiringSection(),
+                      // 💎 7. We Are Hiring
+                      const HiringSection(),
 
                       if (controller.isLoggedIn.value) ...[
                         const Divider(color: Colors.white12, height: 30),
-                        // ✅ 9. Logout
+                        // ✅ 8. Logout
                         _DrawerTile(
                           icon: Icons.logout_rounded,
                           title: "Logout",
@@ -554,66 +570,6 @@ class _DrawerTile extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       hoverColor: Colors.white.withOpacity(0.05),
-    );
-  }
-}
-
-// --- 🔥 We Are Hiring Tile ---
-class _HiringTile extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primary.withOpacity(0.8),
-            AppColors.primary.withOpacity(0.4),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withOpacity(0.5)),
-      ),
-      child: ListTile(
-        onTap: () {
-          Get.back();
-          Get.snackbar(
-            "We are Hiring!",
-            "Redirecting to careers page...",
-            backgroundColor: AppColors.primary,
-            colorText: Colors.white,
-            snackPosition: SnackPosition.BOTTOM,
-            margin: const EdgeInsets.all(20),
-            borderRadius: 12,
-          );
-        },
-        leading: const Icon(Icons.work_rounded, color: Colors.white, size: 24),
-        title: Text(
-          "We are hiring!",
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 15,
-          ),
-        ),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            "NEW",
-            style: GoogleFonts.poppins(
-              color: AppColors.primary,
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
