@@ -1,168 +1,141 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
-import 'package:firebase_auth/firebase_auth.dart';
-import 'reset_password_view.dart'; // আপনার ResetPasswordView-এর সঠিক ইমপোর্ট পাথ দিবেন
+import 'package:willko_user/app/data/services/api_service.dart';
+import '../login/login_view.dart';
+import 'reset_password_view.dart';
 
 class ForgotPasswordController extends GetxController {
   // 🔥 Controllers
-  final phoneController = TextEditingController();
+  final emailController = TextEditingController();
+  final otpController = TextEditingController();
   final newPasswordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
-  // 🔥 Observables
   final isLoading = false.obs;
   final isPasswordHidden = true.obs;
-  String _verificationId = "";
 
-  // Firebase Auth Instance
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  void togglePasswordVisibility() => isPasswordHidden.value = !isPasswordHidden.value;
 
-  // Password Visibility Toggle
-  void togglePasswordVisibility() {
-    isPasswordHidden.value = !isPasswordHidden.value;
-  }
-
-  // ========================================================
-  // STEP 1: Check Phone in Database and Send Firebase OTP
-  // ========================================================
+  // 1. Send OTP to Email
   Future<void> sendOtp() async {
-    String phone = phoneController.text.trim();
+    String email = emailController.text.trim();
 
-    if (phone.isEmpty) {
-      Get.snackbar("Error", "Please enter your phone number.", backgroundColor: Colors.red, colorText: Colors.white);
+    if (!GetUtils.isEmail(email)) {
+      Get.snackbar("Error", "Please enter a valid email.", backgroundColor: Colors.redAccent, colorText: Colors.white);
       return;
     }
 
     isLoading.value = true;
+    var response = await ApiService.sendEmailOtp(email);
+    isLoading.value = false;
 
-    try {
-      // PHP Backend API কল করে চেক করা
-      var response = await http.post(
-        Uri.parse("https://willkoservices.com/WillkoServiceApi/check_phone_exist.php"),
-        body: {"phone": phone},
-      );
-
-      if (response.statusCode == 200) {
-        var data = jsonDecode(response.body);
-
-        if (data['status'] == 'success') {
-          // নাম্বারটি ডাটাবেসে আছে, তাই Firebase OTP ট্রিগার করা
-          await _triggerFirebaseOTP(phone);
-        } else {
-          isLoading.value = false;
-          Get.snackbar("Not Found", data['message'], backgroundColor: Colors.orange, colorText: Colors.white);
-        }
-      } else {
-        isLoading.value = false;
-        Get.snackbar("Error", "Server Error: ${response.statusCode}", backgroundColor: Colors.red, colorText: Colors.white);
-      }
-    } catch (e) {
-      isLoading.value = false;
-      Get.snackbar("Error", "Network error occurred.", backgroundColor: Colors.red, colorText: Colors.white);
-      debugPrint("API Error: $e");
+    if (response['status'] == 'success') {
+      Get.snackbar("Success", response['message'], backgroundColor: Colors.green, colorText: Colors.white);
+      _showOtpDialog(); // 🔥 OTP ডায়লগ ওপেন হবে
+    } else {
+      Get.snackbar("Error", response['message'] ?? "Failed to send OTP", backgroundColor: Colors.redAccent, colorText: Colors.white);
     }
   }
 
-  Future<void> _triggerFirebaseOTP(String phone) async {
-    // 💡 আপনার দেশের কোড অ্যাড করুন (উদাহরণস্বরূপ +880 বা +974)
-    String fullPhone = phone.startsWith('+') ? phone : '+880$phone';
-
-    await _auth.verifyPhoneNumber(
-      phoneNumber: fullPhone,
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        // Auto resolution on Android
-        isLoading.value = false;
-      },
-      verificationFailed: (FirebaseAuthException e) {
-        isLoading.value = false;
-        Get.snackbar("OTP Failed", e.message ?? "Verification failed", backgroundColor: Colors.red, colorText: Colors.white);
-      },
-      codeSent: (String verificationId, int? resendToken) {
-        isLoading.value = false;
-        this._verificationId = verificationId;
-
-        Get.snackbar("Success", "OTP has been sent to your phone", backgroundColor: Colors.green, colorText: Colors.white);
-
-        // 🔥 OTP Screen-এ নেভিগেট করুন (আপনার OTP স্ক্রিনের নাম অনুযায়ী রাউট পরিবর্তন করবেন)
-        Get.toNamed('/otp_view');
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {
-        this._verificationId = verificationId;
-      },
+  // 🔥 Smart OTP Popup Dialog
+  void _showOtpDialog() {
+    otpController.clear();
+    Get.defaultDialog(
+      title: "Enter OTP",
+      titleStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+      contentPadding: const EdgeInsets.all(20),
+      content: Column(
+        children: [
+          Text("We have sent a 6-digit OTP to\n${emailController.text}", textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey)),
+          const SizedBox(height: 20),
+          TextField(
+            controller: otpController,
+            keyboardType: TextInputType.number,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 24, letterSpacing: 10, fontWeight: FontWeight.bold),
+            decoration: InputDecoration(
+              hintText: "------",
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+            ),
+          ),
+        ],
+      ),
+      confirm: Obx(() => SizedBox(
+        width: double.infinity,
+        height: 50,
+        child: ElevatedButton(
+          onPressed: isLoading.value ? null : () => verifyOtp(otpController.text.trim()),
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+          child: isLoading.value ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white)) : const Text("VERIFY", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+        ),
+      )),
     );
   }
 
-  // ========================================================
-  // STEP 2: Verify OTP (এই মেথডটি আপনার OTP স্ক্রিন থেকে কল করবেন)
-  // ========================================================
-  Future<void> verifyOtp(String smsCode) async {
-    if (smsCode.isEmpty || smsCode.length < 6) return;
+  // 2. Verify Email OTP
+  Future<void> verifyOtp(String otp) async {
+    if (otp.isEmpty || otp.length < 4) {
+      Get.snackbar("Error", "Enter valid OTP", backgroundColor: Colors.redAccent, colorText: Colors.white);
+      return;
+    }
 
     isLoading.value = true;
-    try {
-      PhoneAuthCredential credential = PhoneAuthProvider.credential(
-          verificationId: _verificationId, smsCode: smsCode);
+    var response = await ApiService.verifyEmailOtp(emailController.text.trim(), otp);
+    isLoading.value = false;
 
-      await _auth.signInWithCredential(credential);
-
-      isLoading.value = false;
-      // ভেরিফিকেশন সাকসেস হলে Reset Password স্ক্রিনে যাবে
-      Get.to(() => const ResetPasswordView());
-    } catch (e) {
-      isLoading.value = false;
-      Get.snackbar("Error", "Invalid OTP. Please try again.", backgroundColor: Colors.red, colorText: Colors.white);
+    if (response['status'] == 'success') {
+      Get.back(); // Close Dialog
+      Get.snackbar("Verified", "OTP verified successfully!", backgroundColor: Colors.green, colorText: Colors.white);
+      Get.to(() => const ResetPasswordView()); // Go to Password Reset Screen
+    } else {
+      Get.snackbar("Error", response['message'] ?? "Invalid OTP", backgroundColor: Colors.redAccent, colorText: Colors.white);
     }
   }
-
-  // ========================================================
-  // STEP 3: Update Password in Backend Database
+// ========================================================
+  // STEP 3: Reset Password & Navigate to Login
   // ========================================================
   Future<void> resetPassword() async {
     String newPass = newPasswordController.text;
     String confirmPass = confirmPasswordController.text;
-    String phone = phoneController.text.trim();
 
-    if (newPass.isEmpty || confirmPass.isEmpty) {
-      Get.snackbar("Error", "Passwords cannot be empty", backgroundColor: Colors.red, colorText: Colors.white);
+    if (newPass.isEmpty || newPass != confirmPass) {
+      Get.snackbar("Error", "Passwords do not match", backgroundColor: Colors.redAccent, colorText: Colors.white);
       return;
     }
-    if (newPass != confirmPass) {
-      Get.snackbar("Error", "Passwords do not match", backgroundColor: Colors.red, colorText: Colors.white);
+    if (newPass.length < 6) {
+      Get.snackbar("Error", "Password must be at least 6 characters", backgroundColor: Colors.redAccent, colorText: Colors.white);
       return;
     }
 
     isLoading.value = true;
-
     try {
-      var response = await http.post(
-        Uri.parse("https://willkoservices.com/WillkoServiceApi/update_password.php"),
-        body: {
-          "phone": phone,
-          "password": newPass
-        },
-      );
+      var response = await ApiService.resetPasswordEmail(emailController.text.trim(), newPass);
+      isLoading.value = false;
 
-      if (response.statusCode == 200) {
-        var data = jsonDecode(response.body);
-        if (data['status'] == 'success') {
-          Get.snackbar("Success", "Password updated successfully!", backgroundColor: Colors.green, colorText: Colors.white);
+      if (response['status'] == 'success') {
+        // ✅ সাকসেস মেসেজ দেখানো
+        Get.snackbar(
+          "Success",
+          "Password updated successfully! Please login.",
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
 
-          // ফর্ম ক্লিয়ার করে লগইন স্ক্রিনে পাঠিয়ে দেয়া
-          phoneController.clear();
-          newPasswordController.clear();
-          confirmPasswordController.clear();
+        // ✅ ফর্ম ক্লিয়ার করা
+        emailController.clear();
+        newPasswordController.clear();
+        confirmPasswordController.clear();
 
-          Get.offAllNamed('/login'); // আপনার লগইন রাউট দিবেন
-        } else {
-          Get.snackbar("Error", data['message'], backgroundColor: Colors.red, colorText: Colors.white);
-        }
+        // ✅ একদম ক্লিয়ার করে Login স্ক্রিনে পাঠিয়ে দেওয়া (যাতে ব্যাক বাটনে চাপলে আবার রিসেট পেজে না আসে)
+        Get.offAll(() => const LoginView());
+
+      } else {
+        Get.snackbar("Error", response['message'] ?? "Failed to reset password", backgroundColor: Colors.redAccent, colorText: Colors.white);
       }
     } catch (e) {
-      Get.snackbar("Error", "Network error occurred.", backgroundColor: Colors.red, colorText: Colors.white);
-    } finally {
       isLoading.value = false;
+      Get.snackbar("Error", "Network error occurred.", backgroundColor: Colors.redAccent, colorText: Colors.white);
     }
   }
 }

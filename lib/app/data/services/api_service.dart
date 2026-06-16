@@ -1,8 +1,14 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
+
+
+
+
+
   // ================= CONFIGURATION =================
   // ⚠️ আপনার পিসির বর্তমান IPv4 Address এখানে বসান
   static const String _ip = "willkoservices.com";
@@ -31,19 +37,23 @@ static const String _cancelOrderUrl = "$_root/user/order/cancel_order.php";
   static const String _registerUrl = "$_root/user/auth/register.php";
 
   // ================= REGISTER API =================
-  static Future<Map<String, dynamic>> registerUser(String name, String phone, String password) async {
+// ================= REGISTER API =================
+  // 🔥 FIXED: Added 'String email' in the parameters
+  static Future<Map<String, dynamic>> registerUser(String name, String email, String phone, String password) async {
     try {
       final response = await http.post(
         Uri.parse(_registerUrl),
         body: jsonEncode({
           "name": name,
+          "email": email, // 🔥 Added email to the API request body
           "phone": phone,
           "password": password
         }),
         headers: {"Content-Type": "application/json"},
       ).timeout(const Duration(seconds: 15));
 
-      if (response.statusCode == 200) {
+      // 409 স্ট্যাটাস কোড (Duplicate Phone/Email) এর জন্যও রেসপন্স ডিকোড করতে হবে
+      if (response.statusCode == 200 || response.statusCode == 409) {
         return jsonDecode(response.body);
       } else {
         return {"status": "error", "message": "Server Error: ${response.statusCode}"};
@@ -52,7 +62,6 @@ static const String _cancelOrderUrl = "$_root/user/order/cancel_order.php";
       return {"status": "error", "message": "Connection Error: $e"};
     }
   }
-
   // ================= 7. CANCEL ORDER =================
   static Future<Map<String, dynamic>> cancelOrder(String orderId, String reason) async {
     final prefs = await SharedPreferences.getInstance();
@@ -179,15 +188,23 @@ static const String _cancelOrderUrl = "$_root/user/order/cancel_order.php";
   }
 
   // ================= 2. LOGIN API =================
-  static Future<Map<String, dynamic>> login(String phone, String password) async {
+// ================= LOGIN API =================
+  // 🔥 FIXED: Changed 'phone' to 'loginId' to represent both Email and Phone
+  static Future<Map<String, dynamic>> login(String loginId, String password) async {
     try {
       final response = await http.post(
         Uri.parse(_loginUrl),
-        body: jsonEncode({"login_id": phone, "phone": phone, "password": password}),
+        body: jsonEncode({
+          "login_id": loginId, // PHP ব্যাকএন্ড এই 'login_id' রিসিভ করবে
+          "password": password
+        }),
         headers: {"Content-Type": "application/json"},
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else if (response.statusCode == 401 || response.statusCode == 404 || response.statusCode == 403) {
+        // PHP থেকে আসা এরর মেসেজগুলো হ্যান্ডেল করার জন্য
         return jsonDecode(response.body);
       } else {
         return {"status": "error", "message": "Server Error: ${response.statusCode}"};
@@ -196,7 +213,6 @@ static const String _cancelOrderUrl = "$_root/user/order/cancel_order.php";
       return {"status": "error", "message": "Connection Error: $e"};
     }
   }
-
   // ================= 3. PLACE ORDER API (Updated) =================
   static Future<Map<String, dynamic>> placeOrder(Map<String, dynamic> data) async {
     final prefs = await SharedPreferences.getInstance();
@@ -232,4 +248,83 @@ static const String _cancelOrderUrl = "$_root/user/order/cancel_order.php";
       return {"status": "error", "message": "Connection error: $e"};
     }
   }
+
+
+
+
+
+
+
+  ////
+
+
+
+
+// ================= ENDPOINTS (আপডেট করা URL) =================
+  // 🔥 এখানে api/user/auth/ পাথটি যুক্ত করা হয়েছে
+  static const String _sendOtpUrl = "https://willkoservices.com/WillkoServiceApi/api/user/auth/send_email_otp.php";
+  static const String _verifyOtpUrl = "https://willkoservices.com/WillkoServiceApi/api/user/auth/verify_email_otp.php";
+  static const String _resetPassUrl = "https://willkoservices.com/WillkoServiceApi/api/user/auth/update_password_email.php";
+  // ================= FORGOT PASSWORD API METHODS (এগুলো ফাইলের নিচে অ্যাড করবেন) =================
+// ================= FORGOT PASSWORD API METHODS =================
+  static Future<Map<String, dynamic>> sendEmailOtp(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse(_sendOtpUrl), // নিশ্চিত করুন _sendOtpUrl সঠিক
+        body: jsonEncode({"email": email}),
+        headers: {"Content-Type": "application/json"},
+      ).timeout(const Duration(seconds: 15));
+
+      // 🔥 FIXED: যদি সার্ভার থেকে JSON এর বদলে HTML (<!DOCTYPE html>) আসে
+      if (response.body.trim().startsWith('<')) {
+        debugPrint("Server Error Body: ${response.body}"); // কনসোলে দেখার জন্য
+        return {"status": "error", "message": "Server File Not Found (404). Check API URL path!"};
+      }
+
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"status": "error", "message": "Connection Error: $e"};
+    }
+  }
+
+  static Future<Map<String, dynamic>> verifyEmailOtp(String email, String otp) async {
+    try {
+      final response = await http.post(
+        Uri.parse(_verifyOtpUrl),
+        body: jsonEncode({"email": email, "otp": otp}),
+        headers: {"Content-Type": "application/json"},
+      ).timeout(const Duration(seconds: 15));
+
+      if (response.body.trim().startsWith('<')) {
+        return {"status": "error", "message": "Server File Not Found (404). Check API URL path!"};
+      }
+
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"status": "error", "message": "Connection Error: $e"};
+    }
+  }
+
+  static Future<Map<String, dynamic>> resetPasswordEmail(String email, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse(_resetPassUrl),
+        body: jsonEncode({"email": email, "password": password}),
+        headers: {"Content-Type": "application/json"},
+      ).timeout(const Duration(seconds: 15));
+
+      if (response.body.trim().startsWith('<')) {
+        return {"status": "error", "message": "Server File Not Found (404). Check API URL path!"};
+      }
+
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {"status": "error", "message": "Connection Error: $e"};
+    }
+  }
+
+
+
+
+
 }

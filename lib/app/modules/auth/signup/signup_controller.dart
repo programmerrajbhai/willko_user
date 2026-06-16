@@ -12,6 +12,7 @@ class SignUpController extends GetxController {
 
   // Input Controllers
   final nameController = TextEditingController();
+  final emailController = TextEditingController(); // ✅ Added Email Controller
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
@@ -24,13 +25,21 @@ class SignUpController extends GetxController {
   // Register & Auto Login Function
   void register() async {
     String name = nameController.text.trim();
+    String email = emailController.text.trim(); // ✅ Get Email
     String phone = phoneController.text.trim();
     String pass = passwordController.text.trim();
     String confirmPass = confirmPasswordController.text.trim();
 
     // 1. Basic Validation
-    if (name.isEmpty || phone.isEmpty || pass.isEmpty || confirmPass.isEmpty) {
+    if (name.isEmpty || email.isEmpty || phone.isEmpty || pass.isEmpty || confirmPass.isEmpty) {
       Get.snackbar("Error", "All fields are required!",
+          backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+
+    // 2. Email Validation
+    if (!GetUtils.isEmail(email)) {
+      Get.snackbar("Error", "Enter a valid email address!",
           backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
       return;
     }
@@ -51,16 +60,17 @@ class SignUpController extends GetxController {
 
     try {
       // ---------------------------------------------------------
-      // Step 1: কল করা হচ্ছে Register API
+      // Step 1: Register API কল (Email সহ)
       // ---------------------------------------------------------
-      var registerResponse = await ApiService.registerUser(name, phone, pass);
+      // ⚠️ খেয়াল রাখবেন: ApiService.registerUser মেথডে যেন email প্যারামিটারটি রিসিভ করার অপশন থাকে
+      var registerResponse = await ApiService.registerUser(name, email, phone, pass);
 
       if (registerResponse['status'] == 'success') {
 
         // ---------------------------------------------------------
         // Step 2: রেজিস্ট্রেশন সফল হলে অটোমেটিক Login API কল
         // ---------------------------------------------------------
-        var loginResponse = await ApiService.login(phone, pass);
+        var loginResponse = await ApiService.login(phone, pass); // phone অথবা email যেকোনোটি দিয়েই হবে
 
         if (loginResponse['status'] == 'success') {
           // ৩. লগিন সফল হলে ডাটা SharedPreferences এ সেভ করা
@@ -84,13 +94,11 @@ class SignUpController extends GetxController {
           Get.offAll(() => const HomeView());
 
         } else {
-          // কোনো কারণে অটো-লগিন কাজ না করলে ইউজারকে লগিন পেজে পাঠানো হবে
           Get.snackbar("Success", "Account created! Please login manually.",
               backgroundColor: Colors.green, colorText: Colors.white);
           Get.back(); // Back to Login Page
         }
       } else {
-        // রেজিস্ট্রেশন ফেইল হলে মেসেজ দেখানো
         Get.snackbar("Registration Failed", registerResponse['message'] ?? "Try again later.",
             backgroundColor: Colors.redAccent, colorText: Colors.white);
       }
@@ -102,7 +110,6 @@ class SignUpController extends GetxController {
     }
   }
 
-  // Go back to Login
   void goToLogin() {
     Get.back();
   }
@@ -110,6 +117,7 @@ class SignUpController extends GetxController {
   @override
   void onClose() {
     nameController.dispose();
+    emailController.dispose(); // ✅ Clean memory
     phoneController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();

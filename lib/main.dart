@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:willko_user/app/modules/home/home_view.dart';
 
+import 'app/modules/auth/splash/splash_view.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -59,7 +60,7 @@ class MyApp extends StatelessWidget {
       themeMode: ThemeMode.light,
 
       // হোম স্ক্রিন
-      home: const HomeView(),
+      home: const SplashView(),
     );
   }
 }

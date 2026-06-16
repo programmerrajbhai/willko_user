@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "678355556706",
+    "project_id": "willkoserviceforget",
+    "storage_bucket": "willkoserviceforget.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:678355556706:android:dc8a498bf9d7b617ffb43b",
+        "android_client_info": {
+          "package_name": "com.willko.willko_user"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBW9z8xAiPvQY_3BIM41oJh73fVFOxUnRw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

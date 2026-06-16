@@ -1,5 +1,6 @@
 
 import 'package:get/get.dart';
+import 'package:willko_user/app/modules/home/home_view.dart';
 import '../onboarding/onboarding_view.dart';
 
 class SplashController extends GetxController {
@@ -12,6 +13,6 @@ class SplashController extends GetxController {
   void _navigateToOnboarding() async {
     await Future.delayed(const Duration(seconds: 3));
     // সরাসরি পেজ নেভিগেশন (Get.to এর বদলে Get.off যাতে ব্যাকে না আসে)
-    Get.off(() => const OnboardingView());
+    Get.off(() => const HomeView());
   }
 }

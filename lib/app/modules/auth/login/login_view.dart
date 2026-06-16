@@ -9,20 +9,19 @@ class LoginView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Put or Find Controller
     final controller = Get.put(LoginController());
 
     return Scaffold(
-      backgroundColor: Colors.white, // Clean modern background
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // 🔥 Premium Background Element (Top Blue Circle Glow)
+          // 🔥 Premium Background Element
           Positioned(
             top: -100,
             right: -50,
             child: Container(
               width: 250,
-              height: 212345650,
+              height: 250, // 🔥 FIXED: Fixed the abnormal height value (212345650 -> 250)
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppColors.primary.withOpacity(0.05),
@@ -57,7 +56,7 @@ class LoginView extends StatelessWidget {
                               ]
                           ),
                           child: const Icon(
-                              Icons.fingerprint_rounded, // Modern Icon
+                              Icons.fingerprint_rounded,
                               size: 55,
                               color: AppColors.primary
                           ),
@@ -87,9 +86,9 @@ class LoginView extends StatelessWidget {
                     ),
                     const SizedBox(height: 45),
 
-                    // 🔥 Phone Field (Premium Look)
+                    // 🔥 Phone or Email Field
                     _buildPremiumTextField(
-                        controller: controller.phoneController,
+                        controller: controller.loginIdController, // 🔥 FIXED: Using loginIdController
                         label: "Phone or Email",
                         hint: "Enter your phone or email",
                         icon: Icons.person_outline_rounded,
@@ -130,7 +129,7 @@ class LoginView extends StatelessWidget {
                     ),
                     const SizedBox(height: 35),
 
-                    // 🔥 Login Button (Gradient & Animated Look)
+                    // 🔥 Login Button
                     SizedBox(
                       width: double.infinity,
                       height: 58,
@@ -222,7 +221,7 @@ class LoginView extends StatelessWidget {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: Colors.grey.shade50, // Light modern grey
+            color: Colors.grey.shade50,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: Colors.grey.shade200, width: 1.5),
           ),

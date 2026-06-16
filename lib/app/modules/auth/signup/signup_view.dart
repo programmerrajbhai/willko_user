@@ -1,5 +1,3 @@
-// ফাইল: lib/app/modules/auth/signup/signup_view.dart
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -23,10 +21,10 @@ class SignUpView extends StatelessWidget {
           onPressed: () => Get.back(),
         ),
       ),
-      extendBodyBehindAppBar: true, // App bar এর নিচ দিয়ে ডিজাইন যাবে
+      extendBodyBehindAppBar: true,
       body: Stack(
         children: [
-          // 🔥 Premium Background Element (Top Blue Circle Glow)
+          // 🔥 Premium Background Element
           Positioned(
             top: -100,
             right: -50,
@@ -68,7 +66,7 @@ class SignUpView extends StatelessWidget {
                               ]
                           ),
                           child: const Icon(
-                              Icons.person_add_rounded, // Signup specific icon
+                              Icons.person_add_rounded,
                               size: 50,
                               color: AppColors.primary
                           ),
@@ -107,6 +105,16 @@ class SignUpView extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
 
+                    // 🔥 Email Field (NEW)
+                    _buildPremiumTextField(
+                      controller: controller.emailController,
+                      label: "Email Address",
+                      hint: "Enter your email address",
+                      icon: Icons.email_outlined,
+                      inputType: TextInputType.emailAddress,
+                    ),
+                    const SizedBox(height: 20),
+
                     // 🔥 Phone Field
                     _buildPremiumTextField(
                       controller: controller.phoneController,
@@ -142,7 +150,7 @@ class SignUpView extends StatelessWidget {
 
                     const SizedBox(height: 45),
 
-                    // 🔥 Sign Up Button (Gradient & Animated Look)
+                    // 🔥 Sign Up Button
                     SizedBox(
                       width: double.infinity,
                       height: 58,
@@ -233,7 +241,7 @@ class SignUpView extends StatelessWidget {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: Colors.grey.shade50, // Light modern grey
+            color: Colors.grey.shade50,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: Colors.grey.shade200, width: 1.5),
           ),
