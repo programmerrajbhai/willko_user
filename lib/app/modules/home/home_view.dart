@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // 🔥 FontAwesome Import Kora Hoyeche
 import 'package:willko_user/app/modules/home/widgets/app_footer.dart';
 import 'home_controller.dart';
 
@@ -19,17 +21,47 @@ class HomeView extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       endDrawer: const UrbanDrawer(),
-      // ❌ আগে এখানে Obx দিয়ে লোডিং চেক ছিল, সেটা বাদ দেওয়া হয়েছে।
-      // ✅ এখন সরাসরি UI বিল্ড হবে।
+
+      // 🔥 WhatsApp Floating Action Button (Original Icon & Qatar Number)
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          // 💡 Qatar Country Code: 974 (Nicher jaygay apnar asol number ta din)
+          // Udahoron: "97433123456"
+          const String phoneNumber = "97433667970";
+          const String message = "Hello Willko Services, I need some help.";
+
+          final Uri whatsappUri = Uri.parse(
+              "https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}");
+
+          try {
+            if (await canLaunchUrl(whatsappUri)) {
+              await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+            } else {
+              Get.snackbar("Error", "Could not open WhatsApp. Make sure it's installed.",
+                  backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
+            }
+          } catch (e) {
+            Get.snackbar("Error", "Something went wrong!",
+                backgroundColor: Colors.redAccent, colorText: Colors.white, snackPosition: SnackPosition.BOTTOM);
+          }
+        },
+        backgroundColor: const Color(0xFF25D366), // Official WhatsApp Color
+        elevation: 6,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+        child: const FaIcon(
+            FontAwesomeIcons.whatsapp, // 🔥 Ekdom Hubohu WhatsApp Icon
+            color: Colors.white,
+            size: 32
+        ),
+      ),
+
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             /// ================= HERO SECTION (Always Visible) =================
-            // এটি স্ট্যাটিক, তাই সাথে সাথেই দেখা যাবে
-            UrbanHeroSection(
-            ),
+            UrbanHeroSection(),
 
             /// ================= SERVICES (Dynamic) =================
             const SizedBox(height: 60),
@@ -38,7 +70,6 @@ class HomeView extends StatelessWidget {
               child: ServicesChipsUC(controller: controller),
             ),
 
-
             /// ================= WHY SECTION =================
             const SizedBox(height: 60),
             Padding(
@@ -46,12 +77,11 @@ class HomeView extends StatelessWidget {
               child: WhySectionUC(controller: controller),
             ),
 
-
             /// ================= POPULAR SERVICES (Dynamic) =================
             const SizedBox(height: 60),
-        // ✅✅ FOOTER ADDED HERE ✅✅
+
+            // ✅✅ FOOTER ADDED HERE ✅✅
             const AppFooter(),
-          //  const SizedBox(height: 80),
           ],
         ),
       ),
@@ -70,12 +100,12 @@ class HomeView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: controller.cities
               .map((c) => ListTile(
-                    title: Text(c),
-                    onTap: () {
-                      controller.pickCity(c);
-                      Get.back();
-                    },
-                  ))
+            title: Text(c),
+            onTap: () {
+              controller.pickCity(c);
+              Get.back();
+            },
+          ))
               .toList(),
         ),
       ),
